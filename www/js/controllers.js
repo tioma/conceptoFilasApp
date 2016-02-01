@@ -1,6 +1,6 @@
 angular.module('app.controllers', [])
 
-.controller('inicioCtrl', ['$scope', '$cordovaGeolocation', function($scope, $cordovaGeolocation) {
+.controller('inicioCtrl', ['$scope', '$cordovaGeolocation', '$ionicPopup', function($scope, $cordovaGeolocation, $ionicPopup) {
 
   $scope.miPosicion = {
     latitud: 0,
@@ -11,7 +11,7 @@ angular.module('app.controllers', [])
 
   var posOptions = {
     timeout: 10000,
-    enableHighAccuracy: false
+    enableHighAccuracy: true
   };
 
   $cordovaGeolocation
@@ -34,8 +34,17 @@ angular.module('app.controllers', [])
 
     }, function(err) {
       // error
-      $scope.mensaje = 'paso algo';
       console.log(err);
+      $scope.mensaje = err.code + ' - ' + err.message;
+      $ionicPopup.alert({
+          title: "Error",
+          content: "No se pudo determinar su ubicación actual. " + err.code + ' - ' + err.message
+        });
+        /*.then(function(result) {
+          if(!result) {
+            ionic.Platform.exitApp();
+          }
+        });*/
     });
 
   /*var watchOptions = {
