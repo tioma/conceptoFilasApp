@@ -5,6 +5,8 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
+var db = null;
+
 angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'app.services', 'app.directives'])
 
 .run(function($ionicPlatform, ConnectivityMonitor, $ionicPopup) {
@@ -30,5 +32,8 @@ angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'a
           $ionicPlatform.exitApp();
         });
     }
+
+    db = $cordovaSQLite.openDB("ConceptoFilas.db");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS comercio (id integer primary key, nombre text, latitud real, longitud real, servidor text)");
   });
 });

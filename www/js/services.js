@@ -30,6 +30,36 @@ angular.module('app.services', [])
 
 .service('handshakeService', ['$cordovaDevice', '$cordovaGeolocation', '$http', function($cordovaDevice, $cordovaGeolocation, $http){
 
+  function deGradosARadianes(grados){
+    return (grados * Math.PI)/180;
+  }
+
+  function calcularDistanciaCompleja(desde, hasta){
+    var radioTierra = 6371000;
+    var difLatitud = deGradosARadianes(hasta.latitud - desde.latitud);
+    var difLongitud = deGradosARadianes(hasta.longitud - desde.longitud);
+
+    var a = Math.sin(difLatitud/2) * Math.sin(difLatitud/2) +
+            Math.cos(deGradosARadianes(desde.latitud)) * Math.cos(deGradosARadianes(hasta.latitud)) *
+              Math.sin(difLongitud/2) * Math.sin(difLongitud/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return radioTierra * c;
+  }
+
+  function calcularDistancia(desde, hasta){
+    var latitudDesdeRad = deGradosARadianes(desde.latitud);
+    var longitudDesdeRad = deGradosARadianes(desde.longitud);
+
+    var latitudHastaRad = deGradosARadianes(hasta.latitud);
+    var longitudHastaRad = deGradosARadianes(hasta.longitud);
+
+    //Devuelve la distancia en metros
+    //Formula simplificada
+    return Math.acos(Math.sin(latitudDesdeRad)*Math.sin(latitudHastaRad) +
+                      Math.cos(latitudDesdeRad)*Math.cos(latitudHastaRad) *
+                      Math.cos(longitudHastaRad - longitudDesdeRad)) * 6371000;
+  }
+
   this.handshake = function(callback){
     var posOptions = {
       timeout: 10000,
