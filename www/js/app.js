@@ -7,7 +7,7 @@
 // 'starter.controllers' is found in controllers.js
 var db = null;
 
-angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'app.services', 'app.directives'])
+angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'app.services', 'app.directives', 'ui.router'])
 
 .run(function($ionicPlatform, ConnectivityMonitor, $ionicPopup) {
   $ionicPlatform.ready(function() {

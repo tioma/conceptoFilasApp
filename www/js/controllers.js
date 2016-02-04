@@ -1,79 +1,98 @@
 angular.module('app.controllers', [])
 
-.controller('inicioCtrl', ['$scope', '$cordovaGeolocation', '$ionicPopup', function($scope, $cordovaGeolocation, $ionicPopup) {
+  .controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDevice', '$cordovaGeolocation', '$ionicPopup', 'positionService', 'localStorage', '$state',
+    function($scope, $ionicLoading, $http, $cordovaDevice, $cordovaGeolocation, $ionicPopup, positionService, localStorage, $state){
 
-  $scope.miPosicion = {
-    latitud: 0,
-    longitud: 0
-  };
+      $ionicLoading.show({
+        content: 'Cargando',
+        animation: 'fade-in',
+        showBackdrop: false,
+        hideOnStateChange: true,
+        showDelay: 0
+      });
 
-  $scope.mensaje = 'todo bien';
+      document.addEventListener("deviceready", function () {
+        var posOptions = {
+          timeout: 10000,
+          enableHighAccuracy: true
+        };
 
-  var posOptions = {
-    timeout: 10000,
-    enableHighAccuracy: true
-  };
+        $cordovaGeolocation
+          .getCurrentPosition(posOptions)
+          .then(function (position) {
+            var miPosicion = {
+              latitud: position.coords.latitude,
+              longitud: position.coords.longitude
+            };
+            localStorage.setObject('posicion', miPosicion);
+            var servidor = positionService.getServer(miPosicion);
+            if (servidor.success){
+              localStorage.set('enComercio', true);
+              localStorage.set('server', servidor.url);
+              var uuid = {
+                uuid: $cordovaDevice.getUUID()
+              };
+              $http.post(servidor.url + '/handshake', uuid).then(function(data){
+                localStorage.set('token', data.token);
+                $state.go('inicio');
+              }, function(err){
+                $ionicLoading.hide();
+                $ionicPopup.alert({
+                  title: 'Error',
+                  content: 'Se produjo un error al intentar conectar con el servidor ' + servidor.url + ' mensaje: ' + err.message
+                }).then(function(result){
+                  ionic.Platform.exitApp();
+                })
+              })
+            } else {
+              localStorage.set('enComercio', false);
+            }
+          }, function(err){
+            $ionicLoading.hide();
+            $ionicPopup.alert({
+              title: 'Error',
+              content: 'No se ha podido determinar su posición actual, por favor active su GPS'
+            }).then(function(result){
+              ionic.Platform.exitApp();
+            })
+          });
+      }, false);
 
-  $cordovaGeolocation
-    .getCurrentPosition(posOptions)
-    .then(function (position) {
-      $scope.miPosicion.latitud  = position.coords.latitude;
-      $scope.miPosicion.longitud = position.coords.longitude;
-      //var lat  = position.coords.latitude;
-      //var long = position.coords.longitude;
+    }])
 
-      /*var inserturl = '';
+  .controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', function($scope, localStorage, $ionicPopup) {
 
-       $http.get(inserturl, { params: position })
-       .success(function(data){
-       callback(data);
-       }).error(function(error){
-       callback(error);
-       })*/
+    $scope.miPosicion = localStorage.getObject('posicion');
 
+    $scope.mensaje = 'todo bien';
 
-    }, function(err) {
-      // error
-      console.log(err);
-      $scope.mensaje = err.code + ' - ' + err.message;
-      $ionicPopup.alert({
-          title: "Error",
-          content: "No se pudo determinar su ubicación actual. " + err.code + ' - ' + err.message
-        });
-        /*.then(function(result) {
-          if(!result) {
-            ionic.Platform.exitApp();
-          }
-        });*/
-    });
+    /*var watchOptions = {
+     timeout : 3000,
+     enableHighAccuracy: false // may cause errors if true
+     };
 
-  /*var watchOptions = {
-    timeout : 3000,
-    enableHighAccuracy: false // may cause errors if true
-  };
+     var watch = $cordovaGeolocation.watchPosition(watchOptions);
+     watch.then(
+     null,
+     function(err) {
+     // error
+     },
+     function(position) {
+     //console.log(position);
 
-  var watch = $cordovaGeolocation.watchPosition(watchOptions);
-  watch.then(
-    null,
-    function(err) {
-      // error
-    },
-    function(position) {
-      //console.log(position);
-
-    });*/
+     });*/
 
 
-  /*watch.clearWatch();
-  // OR
-  $cordovaGeolocation.clearWatch(watch)
-    .then(function(result) {
-      // success
-    }, function (error) {
-      // error
-    });*/
-}])
+    /*watch.clearWatch();
+     // OR
+     $cordovaGeolocation.clearWatch(watch)
+     .then(function(result) {
+     // success
+     }, function (error) {
+     // error
+     });*/
+  }])
 
-.controller('principalCtrl', function($scope) {
+  .controller('principalCtrl', function($scope) {
 
-});
+  });
