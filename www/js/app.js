@@ -7,9 +7,41 @@
 // 'starter.controllers' is found in controllers.js
 var db = null;
 
-angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'app.services', 'app.directives', 'ui.router'])
+var myApp = angular.module('app', ['ionic', 'ngCordova', 'ui.router', 'ngSanitize', 'btford.socket-io']);
 
-.run(function($ionicPlatform, ConnectivityMonitor, $ionicPopup) {
+myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+
+  $httpProvider.defaults.headers.post['Content-Type'] = 'application/json;charset=utf-8';
+  // Ionic uses AngularUI Router which uses the concept of states
+  // Learn more here: https://github.com/angular-ui/ui-router
+  // Set up the various states which the app can be in.
+  // Each state's controller can be found in controllers.js
+  $stateProvider
+
+    .state('cargando', {
+      url: '/cargando',
+      templateUrl: 'templates/cargando.html'
+    })
+
+    .state('inicio', {
+      url: '/inicio',
+      templateUrl: 'templates/inicio.html'
+    })
+
+    .state('principal', {
+      url: '/principal',
+      templateUrl: 'templates/principal.html'
+    })
+
+
+  ;
+
+  // if none of the above states are matched, use this as the fallback
+  $urlRouterProvider.otherwise('/cargando');
+
+});
+
+myApp.run(function($ionicPlatform, ConnectivityMonitor, $ionicPopup, $cordovaSQLite) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)

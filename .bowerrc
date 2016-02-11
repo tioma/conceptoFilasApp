@@ -1,5 +1,3 @@
 {
-  "directory": "www/lib",
-  "proxy":"http://10.10.0.29:8888",
-  "https-proxy":"http://10.10.0.29:8888"
+  "directory": "www/lib"
 }
