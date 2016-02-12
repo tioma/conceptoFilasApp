@@ -30,13 +30,13 @@
 }
 
 .zoomButton.ng-hide-remove {
-  -webkit-animation: zoomInDown ease 2s;
-  animation: zoomInDown ease 2s;
+  -webkit-animation: zoomInUp ease 3s;
+  animation: zoomInUp ease 3s;
 }
 
 .zoomButton.ng-hide-add {
-  -webkit-animation: zoomOutUp ease 2s;
-  animation: zoomOutUp ease 2s;
+  -webkit-animation: zoomOutUp ease 1.5s;
+  animation: zoomOutUp ease 1.5s;
 }
 /*.cardRight.ng-hide-remove {
   -webkit-animation: bounceInRight ease 1s;

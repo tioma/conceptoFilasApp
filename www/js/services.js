@@ -7,18 +7,11 @@ myApp.factory('ConnectivityMonitor', ['$rootScope', '$cordovaNetwork', '$ionicPo
     startWatching: function(){
 
       $rootScope.$on('$cordovaNetwork:online', function(event, networkState){
-        console.log("went online");
+        $rootScope.$broadcast('online');
       });
 
       $rootScope.$on('$cordovaNetwork:offline', function(event, networkState){
-        console.log("went offline");
-        $ionicPopup.alert({
-            title: "Sin conexión",
-            content: "Se perdió la conexión de Internet."
-          })
-          .then(function(result) {
-            //ionic.Platform.exitApp();
-          });
+        $rootScope.$broadcast('offline');
       });
 
     }
