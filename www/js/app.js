@@ -7,7 +7,7 @@
 // 'starter.controllers' is found in controllers.js
 var db = null;
 
-var myApp = angular.module('app', ['ionic', 'ngCordova', 'ui.router', 'ngSanitize', 'btford.socket-io']);
+var myApp = angular.module('app', ['ionic', 'ngAnimate', 'ngCordova', 'ui.router', 'ngSanitize', 'btford.socket-io']);
 
 myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 

@@ -1,1 +1,50 @@
 /* Empty. Add your own CSS if you like */
+.cardLeft.ng-enter {
+  -webkit-animation: bounceInLeft ease 1s;
+  animation: bounceInLeft ease 1s;
+}
+
+.cardLeft.ng-leave {
+  -webkit-animation: bounceOutRight ease 1s;
+  animation: bounceOutRight ease 1s;
+}
+/*
+.cardLeft.ng-hide-remove {
+  -webkit-animation: bounceInLeft ease 1s;
+  animation: bounceInLeft ease 1s;
+}
+
+.cardLeft.ng-hide-add {
+  -webkit-animation: bounceOutRight ease 1s;
+  animation: bounceOutRight ease 1s;
+}*/
+
+.cardRight.ng-enter{
+  -webkit-animation: bounceInRight ease 1s;
+  animation: bounceInRight ease 1s;
+}
+
+.cardRight.ng-leave{
+  -webkit-animation: bounceOutLeft ease 1s;
+  animation: bounceOutLeft ease 1s;
+}
+
+.zoomButton.ng-hide-remove {
+  -webkit-animation: zoomInDown ease 2s;
+  animation: zoomInDown ease 2s;
+}
+
+.zoomButton.ng-hide-add {
+  -webkit-animation: zoomOutUp ease 2s;
+  animation: zoomOutUp ease 2s;
+}
+/*.cardRight.ng-hide-remove {
+  -webkit-animation: bounceInRight ease 1s;
+  animation: bounceInRight ease 1s;
+}
+
+.cardRight.ng-hide-add {
+  -webkit-animation: bounceOutLeft ease 1s;
+  animation: bounceOutLeft ease 1s;
+}*/
+

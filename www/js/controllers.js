@@ -26,14 +26,14 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
           localStorage.setObject('posicion', miPosicion);
           var servidor = positionService.getServer(miPosicion);
           if (servidor.success){
+            var miUUID = $cordovaDevice.getUUID();
             localStorage.set('enComercio', true);
             localStorage.set('server', servidor.url);
+            localStorage.set('uuid', miUUID);
             var uuid = {
-              uuid: $cordovaDevice.getUUID()
+              uuid: miUUID
             };
             $http.post(servidor.url + '/handshake', uuid).then(function(data){
-              console.log(JSON.stringify(data));
-              console.log('el token es: ' + data.data.token);
               localStorage.set('token', data.data.token);
               $state.go('inicio');
             }, function(err){
@@ -61,45 +61,72 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
 
   }]);
 
-myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', function($scope, localStorage, $ionicPopup, socketFactory) {
+myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform) {
 
-  console.log('acá estamos en el inicio');
-  console.log('el server es: ' + localStorage.get('server'));
-  console.log('el token es: ' + localStorage.get('token'));
+  $scope.initialRender = false;
+  $scope.sistemaHabilitado = false;
+  $scope.haciendoFila = false;
+  var miUUID = localStorage.get('uuid');
+
   var myIoSocket = io.connect(localStorage.get('server'), { query: 'token=' + localStorage.get('token')});
 
   var mySocket = socketFactory({
     ioSocket: myIoSocket
   });
 
-  $scope.miPosicion = localStorage.getObject('posicion');
-
-  $scope.mensaje = 'todo bien';
-
-  mySocket.on('connect', function(data){
-    console.log('hola que tal');
-    $ionicPopup.alert({
-      title: 'se conecto',
-      content: 'se conecto'
+  function customBack(){
+    $ionicPopup.confirm({
+      title: 'Salir',
+      content: '¿Desea salir de la aplicación?'
+    }).then(function(confirm){
+      if (confirm){
+        ionic.Platform.exitApp();
+      }
     })
+  }
+
+  $ionicPlatform.registerBackButtonAction(customBack, 501);
+
+  mySocket.on('estadoSistema', function(data){
+    if (data.cajas.length > 0){
+      $scope.sistemaHabilitado = true;
+      $scope.clientesEnCola = data.colaGeneral.length;
+      $scope.cajasAtendiendo = data.cajas;
+    } else {
+      $scope.sistemaHabilitado = false;
+    }
+    $scope.initialRender = true;
   });
 
-  /*mySocket.on('authenticated', function(data){
-    console.log('hola que tal');
-    $ionicPopup.alert({
-      title: 'se conecto',
-      content: 'se conecto'
-    })
-  });*/
-
-  mySocket.on('tomaID', function(data){
-    console.log('hola que tal');
-    $ionicPopup.alert({
-      title: 'vino data',
-      content: 'id: ' + data
-    })
+  mySocket.on('actualizarFila', function(data){
+    console.log('llego el actualizar fila');
+    //Determino mi posición en la fila
+    var posicion = 0;
+    data.forEach(function(cliente){
+      posicion++;
+      if (cliente.id == miUUID){
+        $scope.posicion = posicion;
+        if (posicion > 1){
+          $scope.estadoFila = 'Tu posición en la fila es la número ' + posicion + '. Tenés una espera promedio de ... hasta ser llamado';
+        } else {
+          $scope.estadoFila = 'Sos el próximo en la fila, estate atento porque en poco tiempo vas a ser llamado.'
+        }
+        $scope.haciendoFila = true;
+      }
+    });
   });
 
+  $scope.hacerFila = function(){
+    mySocket.emit('hacerFila');
+  };
+
+  $scope.retrasarme = function(){
+
+  };
+
+  $scope.irme = function(){
+
+  };
   /*socket.on('tomaID', function(data) {
    $scope.socketID = data;
    });*/
