@@ -2,53 +2,88 @@
   <div class="bar bar-header bar-calm">
     <h1 class="title">Proyecto</h1>
   </div>
-  <ion-content ng-if="initialRender" overflow-scroll="true" direction="xy" padding="true" class="has-header">
-    <div ng-if="sistemaHabilitado" class="cardRight card">
-      <div class="item item-divider item-positive">
-        Estado del sistema
+  <ion-content overflow-scroll="true" padding="true" class="has-header">
+    <div ng-if="initialRender">
+      <div ng-if="online">
+        <div ng-if="sistemaHabilitado" class="cardRight card">
+          <div class="item item-divider item-positive">
+            Estado del sistema
+          </div>
+          <div class="item item-text-wrap">
+            <i class="icon ion-android-cart"></i>
+            El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in cajasAtendiendo track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo
+          </div>
+        </div>
+        <div ng-if="!sistemaHabilitado && enComercio" class="cardRight card">
+          <div class="item item-divider item-assertive">
+            Estado del sistema
+          </div>
+          <div class="item item-text-wrap assertive">
+            <i class="icon ion-android-sad"></i>
+            Lo sentimos, en este momento no hay cajas habilitadas.
+          </div>
+        </div>
+        <div ng-if="sistemaHabilitado && !haciendoFila" class="cardLeft card">
+          <div class="item item-divider item-balanced">
+            Fila
+          </div>
+          <div class="item item-text-wrap">
+            <i class="icon ion-android-person"></i>
+            Actualmente <span ng-show="clientesEnCola == 0">no </span>hay <span ng-show="clientesEnCola > 0">{{clientesEnCola}} </span>clientes haciendo la fila.
+          </div>
+        </div>
+        <div ng-if="haciendoFila" class="cardLeft card">
+          <div class="item item-divider item-balanced">
+            En la fila
+          </div>
+          <div class="item item-text-wrap">
+            <p ng-bind-html="estadoFila"></p>
+          </div>
+        </div>
       </div>
-      <div class="item item-text-wrap">
-        <i class="icon ion-android-cart"></i>
-        El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in cajasAtendiendo track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo
+      <div ng-if="!online">
+        <div class="cardRight card">
+          <div class="item item-divider item-assertive">
+            Estado del sistema
+          </div>
+          <div class="item item-text-wrap">
+            <i class="icon ion-alert"></i>
+            Vuelve a conectarte para actualizar el estado del sistema.
+          </div>
+        </div>
+        <div ng-if="haciendoFila" class="cardLeft card">
+          <div class="item item-divider item-assertive">
+            Sin conexión
+          </div>
+          <div class="item item-text-wrap">
+            <i class="icon ion-alert"></i>
+            Has perdido la conexión con el servidor, vamos a guardar tu posición en la fila, pero deberás reconectarte para que puedas ser llamado.
+          </div>
+        </div>
+      </div>
+      <div ng-if="!enComercio && !errorGPS" class="cardRight card">
+        <div class="item item-divider item-assertive">
+          Sin sistema
+        </div>
+        <div class="item item-text-wrap">
+          <i class="icon ion-alert"></i>
+          Acércate hasta alguno de los comercios habilitados para comenzar a usar el sistema. Puedes ver los comercios habilitados haciendo click aquí.
+        </div>
+      </div>
+      <div ng-if="errorGPS" class="cardLeft card">
+        <div class="item item-divider item-assertive">
+          Error de GPS
+        </div>
+        <div class="item item-text-wrap">
+          <i class="icon ion-alert"></i>
+          No hemos podido determinar tu ubicación. Activa tu GPS para saber que te encuentras en un comercio habilitado.
+        </div>
+      </div>
+      <div ng-if="online">
+        <a href="#" ng-show="!haciendoFila" ng-click="hacerFila()" ng-disabled="!sistemaHabilitado" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
+        <a href="#" ng-show="haciendoFila" ng-click="retrasarme()" class="zoomButton button button-energized button-block  icon-left ion-android-contacts">Retrasarme</a>
+        <a href="#" ng-show="haciendoFila" ng-click="irme()" class="zoomButton button button-assertive button-block  icon-left ion-android-cancel">Irme</a>
       </div>
     </div>
-    <div ng-if="sistemaHabilitado && !haciendoFila" class="cardLeft card">
-      <div class="item item-divider item-balanced">
-        Fila
-      </div>
-      <div class="item item-text-wrap">
-        <i class="icon ion-android-person"></i>
-        Actualmente <span ng-show="clientesEnCola == 0">no </span>hay <span ng-show="clientesEnCola > 0">{{clientesEnCola}} </span>clientes haciendo la fila.
-      </div>
-    </div>
-    <div ng-if="haciendoFila && online" class="cardLeft card">
-      <div class="item item-divider item-balanced">
-        En la fila
-      </div>
-      <div ng-show="online" class="item item-text-wrap">
-        <p ng-bind-html="estadoFila"></p>
-      </div>
-    </div>
-    <div ng-if="haciendoFila && !online" class="cardLeft card">
-      <div class="item item-divider item-assertive">
-        Sin conexión
-      </div>
-      <div ng-show="!online" class="item item-text-wrap">
-        <i class="icon ion-alert"></i>
-        Has perdido la conexión con el servidor, vamos a guardar tu posición en la fila, pero deberás reconectarte para que puedas ser llamado.
-      </div>
-    </div>
-    <div ng-if="!sistemaHabilitado" class="cardRight card">
-      <div class="item item-divider item-assertive">
-        Estado del sistema
-      </div>
-      <div class="item item-text-wrap assertive">
-        <i class="icon ion-android-sad"></i>
-        Lo sentimos, en este momento no hay cajas habilitadas.
-      </div>
-    </div>
-    <a href="#" ng-show="!haciendoFila" ng-click="hacerFila()" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
-    <a href="#" ng-show="haciendoFila" ng-click="retrasarme()" class="zoomButton button button-energized button-block  icon-left ion-android-contacts">Retrasarme</a>
-    <a href="#" ng-show="haciendoFila" ng-click="irme()" class="zoomButton button button-assertive button-block  icon-left ion-android-cancel">Irme</a>
   </ion-content>
 </ion-view>

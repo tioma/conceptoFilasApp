@@ -1,7 +1,6 @@
-myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDevice', '$cordovaGeolocation', '$ionicPopup', 'positionService', 'localStorage', '$state',
-  function($scope, $ionicLoading, $http, $cordovaDevice, $cordovaGeolocation, $ionicPopup, positionService, localStorage, $state){
+myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDevice', 'GeolocationMonitor', '$ionicPopup', 'comerciosFactory', 'localStorage', '$state',
+  function($scope, $ionicLoading, $http, $cordovaDevice, GeolocationMonitor, $ionicPopup, comerciosFactory, localStorage, $state){
 
-    console.log('hola a todo el mundo!');
     $ionicLoading.show({
       content: 'Cargando',
       animation: 'fade-in',
@@ -11,73 +10,150 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
     });
 
     document.addEventListener("deviceready", function () {
-      var posOptions = {
-        timeout: 10000,
-        enableHighAccuracy: true
-      };
 
-      $cordovaGeolocation
-        .getCurrentPosition(posOptions)
-        .then(function (position) {
-          var miPosicion = {
-            latitud: position.coords.latitude,
-            longitud: position.coords.longitude
-          };
+      window.plugins.sqlDB.copy("filasServers.db", 0, function(){
+        console.log('base de datos copiada');
+        cargaInicial();
+      }, function(error){
+        if (error.code == 516){
+          console.log('la base ya estaba copiada');
+          cargaInicial();
+        } else {
+          console.log(JSON.stringify(error));
+          $ionicLoading.hide();
+          $ionicPopup.alert({
+            title: 'Error',
+            content: 'Se produjo un error al copiar la base de datos.'
+          }).then(function(result){
+            ionic.Platform.exitApp();
+          })
+        }
+      });
+    }, false);
+
+    function cargaInicial(){
+      var miUUID = $cordovaDevice.getUUID();
+      localStorage.set('uuid', miUUID);
+
+      GeolocationMonitor.getCurrentLocation(function(miPosicion, ok){
+        if (ok){
+          localStorage.set('errorGPS', false);
           localStorage.setObject('posicion', miPosicion);
-          var servidor = positionService.getServer(miPosicion);
-          if (servidor.success){
-            var miUUID = $cordovaDevice.getUUID();
-            localStorage.set('enComercio', true);
-            localStorage.set('server', servidor.url);
-            localStorage.set('uuid', miUUID);
-            var uuid = {
-              uuid: miUUID
-            };
-            $http.post(servidor.url + '/handshake', uuid).then(function(data){
-              localStorage.set('token', data.data.token);
-              $state.go('inicio');
-            }, function(err){
+          comerciosFactory.getComercioCliente(miPosicion, function(comercio, ok){
+            if (ok){
+              localStorage.set('enComercio', true);
+              localStorage.setObject('comercio', comercio);
+              var uuid = {
+                uuid: miUUID
+              };
+              $http.post(comercio.serverUrl + '/handshake', uuid).then(function(data){
+                localStorage.set('token', data.data.token);
+                localStorage.set('isOnline', true);
+                $state.go('inicio');
+              }, function(err){
+                $ionicLoading.hide();
+                $ionicPopup.alert({
+                  title: 'Error',
+                  content: 'Se produjo un error al intentar conectar con el servidor ' + servidor.url + ' mensaje: ' + err.message
+                }).then(function(result){
+                  localStorage.set('isOnline', false);
+                  $state.go('inicio');
+                })
+              })
+            } else {
               $ionicLoading.hide();
               $ionicPopup.alert({
-                title: 'Error',
-                content: 'Se produjo un error al intentar conectar con el servidor ' + servidor.url + ' mensaje: ' + err.message
+                title: 'Sin sistema',
+                content: 'Acercate hasta un comercio con el sistema habilitado'
               }).then(function(result){
-                ionic.Platform.exitApp();
+                localStorage.set('enComercio', false);
+                $state.go('inicio');
               })
-            })
-          } else {
-            localStorage.set('enComercio', false);
-          }
-        }, function(err){
+            }
+          });
+        } else {
+          console.log(JSON.stringify(miPosicion));
           $ionicLoading.hide();
           $ionicPopup.alert({
             title: 'Error',
             content: 'No se ha podido determinar su posición actual, por favor active su GPS'
           }).then(function(result){
-            ionic.Platform.exitApp();
+            localStorage.set('enComercio', false);
+            localStorage.set('errorGPS', true);
+            $state.go('inicio');
           })
-        });
-    }, false);
+        }
+      });
+    }
 
   }]);
 
-myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce',
-  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce) {
+myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce', 'comerciosFactory', '$http',
+  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce, comerciosFactory, $http) {
 
     //Flags de control
     $scope.initialRender = false;
     $scope.sistemaHabilitado = false;
     $scope.haciendoFila = false;
     $scope.enCaja = false;
-    $scope.online = true;
+    $scope.online = (localStorage.get('isOnline') === 'true');
+    $scope.enComercio = (localStorage.get('enComercio') === 'true');
+    $scope.errorGPS = (localStorage.get('errorGPS') === 'true');
+    console.log('error de GPS:' + $scope.errorGPS);
+    console.log('enComercio esta: ' + $scope.enComercio);
+    console.log(typeof $scope.enComercio);
+    console.log(typeof $scope.online);
 
+    var mySocket = null;
     var miUUID = localStorage.get('uuid');
 
-    var myIoSocket = io.connect(localStorage.get('server'), { query: 'token=' + localStorage.get('token')});
+    function conectarSocket(){
+      var myIoSocket = io.connect(localStorage.getObject('comercio').serverUrl, { query: 'token=' + localStorage.get('token')});
 
-    var mySocket = socketFactory({
-      ioSocket: myIoSocket
-    });
+      mySocket = socketFactory({
+        ioSocket: myIoSocket
+      });
+
+      mySocket.on('estadoSistema', function(data){
+        if (data.cajas.length > 0){
+          $scope.sistemaHabilitado = true;
+          $scope.clientesEnCola = data.colaGeneral.length;
+          $scope.cajasAtendiendo = data.cajas;
+        } else {
+          $scope.sistemaHabilitado = false;
+        }
+        $scope.initialRender = true;
+      });
+
+      mySocket.on('actualizarFila', function(data){
+        //debería enviar la cola general y el tiempo promedio de atención por persona
+        $scope.clientesEnCola = data.colaGeneral.length;
+        //Determino mi posición en la fila
+        var posicion = 0;
+        data.colaGeneral.forEach(function(cliente){
+          posicion++;
+          if (cliente.id == miUUID){
+            var retrasoPromedio = data.tiempoPromedioAtencion * (posicion - 1);
+            $scope.posicion = posicion;
+            if (posicion > 1){
+              $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Perfecto, ya estás en la fila. Tu posición es la número <b>' + posicion + '</b>. Tenés una espera promedio de <b>' + retrasoPromedio + '</b> minutos hasta ser llamado');
+            } else {
+              $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Sos el próximo en la fila, estate atento porque en unos instantes vas a ser llamado.')
+            }
+          }
+          $scope.haciendoFila = true;
+        });
+      });
+    }
+
+    if ($scope.online && $scope.enComercio){
+      console.log('qué esta pasando aca?');
+      conectarSocket();
+
+    } else {
+      console.log('hola');
+      $scope.initialRender = true;
+    }
 
     function customBack(){
       $ionicPopup.confirm({
@@ -85,44 +161,13 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
         content: '¿Desea salir de la aplicación?'
       }).then(function(confirm){
         if (confirm){
-          mySocket.emit('salirFila');
+          if ($scope.haciendoFila) mySocket.emit('salirFila');
           ionic.Platform.exitApp();
         }
       })
     }
 
     $ionicPlatform.registerBackButtonAction(customBack, 501);
-
-    mySocket.on('estadoSistema', function(data){
-      if (data.cajas.length > 0){
-        $scope.sistemaHabilitado = true;
-        $scope.clientesEnCola = data.colaGeneral.length;
-        $scope.cajasAtendiendo = data.cajas;
-      } else {
-        $scope.sistemaHabilitado = false;
-      }
-      $scope.initialRender = true;
-    });
-
-    mySocket.on('actualizarFila', function(data){
-      //debería enviar la cola general y el tiempo promedio de atención por persona
-      $scope.clientesEnCola = data.colaGeneral.length;
-      //Determino mi posición en la fila
-      var posicion = 0;
-      data.colaGeneral.forEach(function(cliente){
-        posicion++;
-        if (cliente.id == miUUID){
-          var retrasoPromedio = data.tiempoPromedioAtencion * (posicion - 1);
-          $scope.posicion = posicion;
-          if (posicion > 1){
-            $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Perfecto, ya estás en la fila. Tu posición es la número <b>' + posicion + '</b>. Tenés una espera promedio de <b>' + retrasoPromedio + '</b> minutos hasta ser llamado');
-          } else {
-            $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Sos el próximo en la fila, estate atento porque en unos instantes vas a ser llamado.')
-          }
-        }
-        $scope.haciendoFila = true;
-      });
-    });
 
     $scope.hacerFila = function(){
       mySocket.emit('hacerFila');
@@ -155,40 +200,51 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
       if ($scope.haciendoFila) mySocket.emit('pedirActualizacion');
     });
 
+    $scope.$on('nuevaPosicion', function(ev, miPosicion){
+      console.log('llego nueva posicion: ' + JSON.stringify(miPosicion));
+      localStorage.set('errorGPS', false);
+      $scope.errorGPS = false;
+      if (!$scope.enComercio){
+        //Determinar si se encuentra en un comercio y conectar
+        comerciosFactory.getComercioCliente(miPosicion, function(comercio, ok){
+          if (ok){
+            console.log('si estaba en un comercio');
+            $scope.enComercio = true;
+            localStorage.set('enComercio', true);
+            localStorage.setObject('comercio', comercio);
+            var uuid = {
+              uuid: miUUID
+            };
+            $http.post(comercio.serverUrl + '/handshake', uuid).then(function(data){
+              console.log('hizo el handshake ok');
+              localStorage.set('token', data.data.token);
+              localStorage.set('isOnline', true);
+              $scope.online = true;
+              conectarSocket();
+            }, function(err){
+              console.log('no hizo el handshake');
+              localStorage.set('isOnline', false);
+              $scope.online = false;
+            })
+          } else {
+            console.log('no se encontro un comercio');
+            localStorage.set('enComercio', false);
+            $scope.enComercio = false;
+          }
+        });
+      }
+    });
+
+    $scope.$on('errorGPS', function(){
+      console.log('llego error de gps');
+      console.log('el initialRender esta: ' + $scope.initialRender);
+      localStorage.set('errorGPS', true);
+      $scope.errorGPS = true;
+    });
+
     $scope.$on('$destroy', function(){
       console.log('CHAU CHAU CHAU CHAUUUUUUUU');
       mySocket.emit('salirFila');
     });
-    /*socket.on('tomaID', function(data) {
-     $scope.socketID = data;
-     });*/
-    /*var watchOptions = {
-     timeout : 3000,
-     enableHighAccuracy: false // may cause errors if true
-     };
 
-     var watch = $cordovaGeolocation.watchPosition(watchOptions);
-     watch.then(
-     null,
-     function(err) {
-     // error
-     },
-     function(position) {
-     //console.log(position);
-
-     });*/
-
-
-    /*watch.clearWatch();
-     // OR
-     $cordovaGeolocation.clearWatch(watch)
-     .then(function(result) {
-     // success
-     }, function (error) {
-     // error
-     });*/
   }]);
-
-myApp.controller('principalCtrl', function($scope) {
-
-});

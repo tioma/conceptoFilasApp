@@ -1,3 +1,132 @@
+myApp.factory('comerciosFactory', ['$cordovaSQLite', 'positionService', function($cordovaSQLite, positionService){
+
+  var db = null;
+  var factory = {
+
+    getComercioCliente: function(posicionCliente, callback){
+      var comercio = {};
+      var posicionComercio = {
+        latitud: 0,
+        longitud: 0
+      };
+      var query = "SELECT idComercio, nombre, latitud, longitud, serverUrl, direccion, observaciones FROM comercio";
+      var comercio = null;
+      var encontrado = false;
+
+      db = $cordovaSQLite.openDB("filasServers.db");
+
+      $cordovaSQLite.execute(db, query, []). then(function(res){
+        for (var i = 0; i < res.rows.length; i++){
+          posicionComercio.longitud = parseFloat(res.rows.item(i).longitud);
+          posicionComercio.latitud = parseFloat(res.rows.item(i).latitud);
+          var distancia = positionService.calcularDistancia(posicionCliente, posicionComercio);
+          if (distancia < 200){
+            comercio = {
+              idComercio: res.rows.item(i).idComercio,
+              nombre: res.rows.item(i).nombre,
+              direccion: res.rows.item(i).direccion,
+              observacion: res.rows.item(i).observaciones,
+              latitud: res.rows.item(i).latitud,
+              longitud: res.rows.item(i).longitud,
+              serverUrl: res.rows.item(i).serverUrl
+            };
+            encontrado = true;
+            callback(comercio, encontrado);
+          }
+        }
+        callback(comercio, encontrado);
+      }, function(err){
+        callback(err, false);
+      })
+    },
+
+    getComercios: function(callback){
+      var comercios = [];
+      var query = "SELECT idComercio, nombre, latitud, longitud, serverUrl, direccion, observaciones FROM comercio";
+
+      db = $cordovaSQLite.openDB("filasServers.db");
+
+      $cordovaSQLite.execute(db, query, []).then(function(res){
+        for (var i = 0; i < res.rows.length; i++){
+          var comercio = {
+            idComercio: res.rows.item(i).idComercio,
+            nombre: res.rows.item(i).nombre,
+            direccion: res.rows.item(i).direccion,
+            observacion: res.rows.item(i).observaciones,
+            latitud: res.rows.item(i).latitud,
+            longitud: res.rows.item(i).longitud,
+            serverUrl: res.rows.item(i).serverUrl
+          };
+          comercios.push(comercio);
+        }
+        callback(comercios, 'OK');
+      }, function(err){
+        callback(err, 'ERROR')
+      })
+    }
+
+  };
+
+  return factory;
+
+}]);
+
+myApp.factory('GeolocationMonitor', ['$rootScope', '$cordovaGeolocation', '$timeout', function($rootScope, $cordovaGeolocation, $timeout){
+
+  //Implementado con timeouts para no gastar mucha batería
+  function errGeolocation(err){
+    console.log('error de gps: ' + err);
+    console.log(JSON.stringify(err));
+    //localStorage.set('enComercio', false);
+    $rootScope.$broadcast('errorGPS');
+    $timeout(factory.startWatching, 30*1000);  //Ejecuta cada 30 segundos
+  }
+
+  function successGeolocation(position){
+    console.log('nueva posicion');
+    var miPosicion = {
+      latitud: position.coords.latitude,
+      longitud: position.coords.longitude
+    };
+    $rootScope.$broadcast('nuevaPosicion', miPosicion);
+    $timeout(factory.startWatching, 30*60*1000); //Ejecuta cada 30 minutos
+  }
+
+  var posOptions = {
+    maximumAge: 30 * 1000,
+    timeout: 10 * 1000,
+    enableHighAccuracy: true
+  };
+
+  var factory = {
+    getCurrentLocation: function(callback){
+
+      $cordovaGeolocation
+        .getCurrentPosition(posOptions)
+        .then(function(position){
+          var miPosicion = {
+            latitud: position.coords.latitude,
+            longitud: position.coords.longitude
+          };
+          callback(miPosicion, true);
+        }, function(err){
+          callback(err, false);
+        });
+    },
+
+    startWatching: function () {
+
+      $cordovaGeolocation
+        .getCurrentPosition(posOptions)
+        .then(successGeolocation, errGeolocation);
+
+    }
+  };
+
+  return factory;
+
+}]);
+
 myApp.factory('ConnectivityMonitor', ['$rootScope', '$cordovaNetwork', '$ionicPopup', function($rootScope, $cordovaNetwork, $ionicPopup){
 
   return {
@@ -64,7 +193,8 @@ myApp.service('positionService', [function(){
     return radioTierra * c;
   }
 
-  function calcularDistancia(desde, hasta){
+  this.calcularDistancia = function(desde, hasta){
+
     var latitudDesdeRad = deGradosARadianes(desde.latitud);
     var longitudDesdeRad = deGradosARadianes(desde.longitud);
 
@@ -76,16 +206,7 @@ myApp.service('positionService', [function(){
     return Math.acos(Math.sin(latitudDesdeRad)*Math.sin(latitudHastaRad) +
         Math.cos(latitudDesdeRad)*Math.cos(latitudHastaRad) *
         Math.cos(longitudHastaRad - longitudDesdeRad)) * 6371000;
-  }
-
-  this.getServer = function(miPosicion){
-    //Acá comparo mi posicion con las que están en la base de datos para determinar si me encuentro en algún comercio
-    //Hardcodeo servidor para prototipo
-    return {
-      success: true,
-      url: 'http://10.0.3.2:3001'
-    };
-  }
+  };
 
 }]);
 

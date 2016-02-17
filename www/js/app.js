@@ -5,7 +5,6 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-var db = null;
 
 var myApp = angular.module('app', ['ionic', 'ngAnimate', 'ngCordova', 'ui.router', 'ngSanitize', 'btford.socket-io']);
 
@@ -28,11 +27,6 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
       templateUrl: 'templates/inicio.html'
     })
 
-    .state('principal', {
-      url: '/principal',
-      templateUrl: 'templates/principal.html'
-    })
-
 
   ;
 
@@ -41,31 +35,37 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 
 });
 
-myApp.run(function($ionicPlatform, ConnectivityMonitor, $ionicPopup, $cordovaSQLite) {
-  $ionicPlatform.ready(function() {
-    // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-    // for form inputs)
-    if(window.cordova && window.cordova.plugins.Keyboard) {
-      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
-    }
-    if(window.StatusBar) {
-      // org.apache.cordova.statusbar required
-      StatusBar.styleDefault();
-    }
+myApp.run(['$rootScope', '$ionicPlatform', 'ConnectivityMonitor', '$ionicPopup',  'localStorage', 'GeolocationMonitor',
+  function($rootScope, $ionicPlatform, ConnectivityMonitor, $ionicPopup, localStorage, GeolocationMonitor) {
+    $ionicPlatform.ready(function() {
 
-    if (ConnectivityMonitor.isOnline()){
+      var watch = null;
+      // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+      // for form inputs)
+      if(window.cordova && window.cordova.plugins.Keyboard) {
+        cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+      }
+      if(window.StatusBar) {
+        // org.apache.cordova.statusbar required
+        StatusBar.styleDefault();
+      }
+
       ConnectivityMonitor.startWatching();
-    } else {
-      $ionicPopup.alert({
-          title: "Sin conexión",
-          content: "Su dispositivo no está conectado a Internet."
-        })
-        .then(function(result) {
-          $ionicPlatform.exitApp();
-        });
-    }
 
-    db = $cordovaSQLite.openDB("ConceptoFilas.db");
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS comercio (id integer primary key, nombre text, latitud real, longitud real, servidor text)");
-  });
-});
+      if (!ConnectivityMonitor.isOnline()){
+        $ionicPopup.alert({
+            title: "Sin conexión",
+            content: "Su dispositivo no está conectado a Internet."
+          })
+          .then(function(result) {
+            localStorage.set('isOnline', false);
+            localStorage.set('enComercio', false);
+          });
+      } else {
+        localStorage.set('isOnline', true);
+      }
+
+      GeolocationMonitor.startWatching();
+
+    });
+  }]);

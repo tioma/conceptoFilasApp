@@ -1,7 +1,7 @@
 /* Empty. Add your own CSS if you like */
 .cardLeft.ng-enter {
-  -webkit-animation: bounceInLeft ease 1s;
-  animation: bounceInLeft ease 1s;
+  -webkit-animation: bounceInLeft ease 2s;
+  animation: bounceInLeft ease 2s;
 }
 
 .cardLeft.ng-leave {
@@ -20,8 +20,8 @@
 }*/
 
 .cardRight.ng-enter{
-  -webkit-animation: bounceInRight ease 1s;
-  animation: bounceInRight ease 1s;
+  -webkit-animation: bounceInRight ease 2s;
+  animation: bounceInRight ease 2s;
 }
 
 .cardRight.ng-leave{
