@@ -27,6 +27,11 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
       templateUrl: 'templates/inicio.html'
     })
 
+    .state('comercios', {
+      url: '/comercios',
+      templateUrl: 'templates/comercios.html'
+    })
+
 
   ;
 

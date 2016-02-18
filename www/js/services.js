@@ -59,9 +59,9 @@ myApp.factory('comerciosFactory', ['$cordovaSQLite', 'positionService', function
           };
           comercios.push(comercio);
         }
-        callback(comercios, 'OK');
+        callback(comercios, true);
       }, function(err){
-        callback(err, 'ERROR')
+        callback(err, false)
       })
     }
 

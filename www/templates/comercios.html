@@ -1,0 +1,21 @@
+<ion-view ng-controller="comerciosCtrl">
+  <div class="bar bar-header bar-calm">
+    <h1 class="title">Proyecto</h1>
+  </div>
+  <ion-content overflow-scroll="true" padding="true" class="has-header has-tabs">
+    <div ng-repeat="comercio in comercios" class="list card">
+      <div class="item item-icon-left">
+        <i class="icon ion-home"></i>
+        <h2>{{ comercio.nombre }}</h2>
+        <p>{{ comercio.direccion }}</p>
+      </div>
+      <div class="item item-image">
+        <img ng-src="{{ comercio.image }}" height="128" >
+      </div>
+      <a ng-click="openMap(comercio.latitud, comercio.longitud)" class="item item-icon-left calm" href="#">
+        <i class="icon ion-android-navigate"></i>
+        Ver mapa
+      </a>
+    </div>
+  </ion-content>
+</ion-view>

@@ -248,3 +248,25 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
     });
 
   }]);
+
+myApp.controller('comerciosCtrl', ['$scope', 'comerciosFactory', function($scope, comerciosFactory){
+
+  $scope.comercios = [];
+
+  comerciosFactory.getComercios(function(data, ok){
+    if (ok){
+      $scope.comercios = data;
+      $scope.comercios.forEach(function(comercio){
+        comercio.image = "./img/comercio" + comercio.idComercio + ".jpg";
+        console.log(comercio.image);
+      })
+    }
+  });
+
+  $scope.openMap = function(latitud, longitud){
+    console.log('intento abrir mapa en latitud ' + latitud + ' y longitud ' + longitud);
+    //window.open('geo:' + latitud + ',' + longitud, '_system');
+    window.open('http://maps.google.com/maps?daddr=' + latitud + ',' + longitud);
+  }
+
+}]);
