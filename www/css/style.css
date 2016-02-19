@@ -1,4 +1,6 @@
 /* Empty. Add your own CSS if you like */
+
+/* Algunas animaciones con animate.css */
 .cardLeft.ng-enter {
   -webkit-animation: bounceInLeft ease 2s;
   animation: bounceInLeft ease 2s;
@@ -8,16 +10,6 @@
   -webkit-animation: bounceOutRight ease 1s;
   animation: bounceOutRight ease 1s;
 }
-/*
-.cardLeft.ng-hide-remove {
-  -webkit-animation: bounceInLeft ease 1s;
-  animation: bounceInLeft ease 1s;
-}
-
-.cardLeft.ng-hide-add {
-  -webkit-animation: bounceOutRight ease 1s;
-  animation: bounceOutRight ease 1s;
-}*/
 
 .cardRight.ng-enter{
   -webkit-animation: bounceInRight ease 2s;
@@ -38,13 +30,42 @@
   -webkit-animation: zoomOutUp ease 1.5s;
   animation: zoomOutUp ease 1.5s;
 }
-/*.cardRight.ng-hide-remove {
-  -webkit-animation: bounceInRight ease 1s;
-  animation: bounceInRight ease 1s;
+
+/* Customs pop-ups */
+.danger-popup .popup-head {
+    background-color: #ef473a;
 }
 
-.cardRight.ng-hide-add {
-  -webkit-animation: bounceOutLeft ease 1s;
-  animation: bounceOutLeft ease 1s;
-}*/
+.question-popup .popup-head {
+  background-color: #387ef5;
+}
 
+.alert-popup .popup-head {
+  background-color: #ffc900;
+}
+
+/* Custom button */
+.boton-agregar {
+  border-radius: 0px 200px 200px 200px;
+  -moz-border-radius: 0px 200px 200px 200px;
+  -webkit-border-radius: 0px 200px 200px 200px;
+  border: 0px solid #000000;
+}
+
+.boton-remover {
+  border-radius: 200px 0px 200px 200px;
+  -moz-border-radius: 200px 0px 200px 200px;
+  -webkit-border-radius: 200px 0px 200px 200px;
+  border: 0px solid #000000;
+}
+
+.card {
+  -webkit-box-shadow: 8px 8px 8px 0px rgba(0,0,0,1);
+  -moz-box-shadow: 8px 8px 8px 0px rgba(0,0,0,1);
+  box-shadow: 8px 8px 8px 0px rgba(0,0,0,1);
+  border: 1px solid #000000;
+}
+
+.texto-tachado {
+  text-decoration: line-through;
+}

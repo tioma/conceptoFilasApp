@@ -1,0 +1,15 @@
+<ion-view ng-controller="listaCtrl">
+  <div class="bar bar-header bar-calm">
+    <h1 class="title">Lista de compras</h1>
+  </div>
+  <ion-content overflow-scroll="true" padding="true" class="has-header has-tabs">
+    <ion-list>
+      <ion-checkbox ng-repeat="item in listaCompras.data track by $index" ng-model="item.check" ng-click="tachar($index)" ng-class="{'texto-tachado': item.check }">{{ item.descripcion }}</ion-checkbox>
+    </ion-list>
+    <div class="row-bottom">
+      <button ng-click="limpiarTachados()" class="button icon button-assertive boton-remover ion-android-remove"></button>
+      <button ng-click="agregar()" class="button icon button-balanced boton-agregar ion-android-add"></button>
+    </div>
+  </ion-content>
+
+</ion-view>

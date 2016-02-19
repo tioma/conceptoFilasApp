@@ -27,6 +27,11 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
       templateUrl: 'templates/inicio.html'
     })
 
+    .state('lista', {
+      url: '/lista',
+      templateUrl: 'templates/lista.html'
+    })
+
     .state('comercios', {
       url: '/comercios',
       templateUrl: 'templates/comercios.html'
@@ -60,7 +65,8 @@ myApp.run(['$rootScope', '$ionicPlatform', 'ConnectivityMonitor', '$ionicPopup',
       if (!ConnectivityMonitor.isOnline()){
         $ionicPopup.alert({
             title: "Sin conexión",
-            content: "Su dispositivo no está conectado a Internet."
+            content: "Su dispositivo no está conectado a Internet.",
+            cssClass: "energized"
           })
           .then(function(result) {
             localStorage.set('isOnline', false);

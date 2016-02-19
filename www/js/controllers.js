@@ -23,7 +23,8 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
           $ionicLoading.hide();
           $ionicPopup.alert({
             title: 'Error',
-            content: 'Se produjo un error al copiar la base de datos.'
+            content: 'Se produjo un error al copiar la base de datos.',
+            cssClass: "danger-popup"
           }).then(function(result){
             ionic.Platform.exitApp();
           })
@@ -54,7 +55,8 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
                 $ionicLoading.hide();
                 $ionicPopup.alert({
                   title: 'Error',
-                  content: 'Se produjo un error al intentar conectar con el servidor ' + servidor.url + ' mensaje: ' + err.message
+                  content: 'Se produjo un error al intentar conectar con el servidor ' + servidor.url + ' mensaje: ' + err.message,
+                  cssClass: 'alert-popup'
                 }).then(function(result){
                   localStorage.set('isOnline', false);
                   $state.go('inicio');
@@ -64,7 +66,8 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
               $ionicLoading.hide();
               $ionicPopup.alert({
                 title: 'Sin sistema',
-                content: 'Acercate hasta un comercio con el sistema habilitado'
+                content: 'Acercate hasta un comercio con el sistema habilitado',
+                cssClass: "alert-popup"
               }).then(function(result){
                 localStorage.set('enComercio', false);
                 $state.go('inicio');
@@ -76,7 +79,8 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
           $ionicLoading.hide();
           $ionicPopup.alert({
             title: 'Error',
-            content: 'No se ha podido determinar su posición actual, por favor active su GPS'
+            content: 'No se ha podido determinar su posición actual, por favor active su GPS',
+            cssClass: "alert-popup"
           }).then(function(result){
             localStorage.set('enComercio', false);
             localStorage.set('errorGPS', true);
@@ -158,7 +162,9 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
     function customBack(){
       $ionicPopup.confirm({
         title: 'Salir',
-        content: '¿Desea salir de la aplicación?'
+        content: '¿Desea salir de la aplicación?',
+        cssClass: "question-popup",
+        cancelText: "Cancelar"
       }).then(function(confirm){
         if (confirm){
           if ($scope.haciendoFila) mySocket.emit('salirFila');
@@ -180,7 +186,9 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
     $scope.irme = function(){
       $ionicPopup.confirm({
         title: 'Abandonar fila',
-        content: 'Vas a perder tu posición en la fila, ¿estás seguro?'
+        content: 'Vas a perder tu posición en la fila, ¿estás seguro?',
+        cssClass: "question-popup",
+        cancelText: "Cancelar"
       }).then(function(confirm){
         if (confirm){
           mySocket.emit('salirFila');
@@ -248,6 +256,55 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
     });
 
   }]);
+
+myApp.controller('listaCtrl', ['$scope', 'localStorage', '$ionicPopup', function($scope, localStorage, $ionicPopup){
+
+  $scope.listaCompras = localStorage.getObject('listaCompras');
+
+  if (!angular.isDefined($scope.listaCompras.data)){
+    $scope.listaCompras = {
+      data: []
+    }
+  }
+
+  $scope.tachar = function(indice){
+    var item = $scope.listaCompras.data.splice(indice, 1)[0];
+    $scope.listaCompras.data.push(item);
+
+    localStorage.setObject('listaCompras', $scope.listaCompras);
+  };
+
+  $scope.limpiarTachados = function(){
+    var aux = [];
+    $scope.listaCompras.data.forEach(function(item){
+      if (!item.check){
+        aux.push(item);
+      }
+    });
+    $scope.listaCompras.data = aux;
+    localStorage.setObject('listaCompras', $scope.listaCompras);
+  };
+
+  $scope.agregar = function(){
+    $ionicPopup.prompt({
+      title: 'Nuevo ítem',
+      template: 'Ingrese nuevo ítem',
+      inputType: 'text',
+      inputPlaceholder: 'Nuevo ítem'
+    }).then(function(res) {
+      console.log(res);
+      if (angular.isDefined(res)){
+        var item = {
+          check: false,
+          descripcion: res
+        };
+        $scope.listaCompras.data.push(item);
+        localStorage.setObject('listaCompras', $scope.listaCompras);
+      }
+    });
+  }
+
+}]);
 
 myApp.controller('comerciosCtrl', ['$scope', 'comerciosFactory', function($scope, comerciosFactory){
 
