@@ -328,13 +328,21 @@ myApp.controller('comerciosCtrl', ['$scope', 'comerciosFactory', function($scope
 
 }]);
 
-myApp.controller('loginCtrl', ['$scope', function($scope){
+myApp.controller('loginCtrl', ['$scope', '$cordovaFacebook', function($scope, $cordovaFacebook){
 
   $scope.usuario = '';
   $scope.password = '';
 
   $scope.ingresar = function(){
-
+    //Probando login con fb
+    $cordovaFacebook.login(["public_profile", "email", "user_friends"])
+      .then(function(success){
+        console.log('todo ok');
+        console.log(JSON.stringify(success));
+      }, function(error){
+        console.log('error');
+        console.log(JSON.stringify(error));
+      });
   }
 
 }]);
