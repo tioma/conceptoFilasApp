@@ -1,0 +1,18 @@
+<ion-view ng-controller="loginCtrl">
+  <ion-header-bar class="bar-calm" align-title="center">
+    <h1 class="title">Iniciar sesión</h1>
+  </ion-header-bar>
+  <ion-content overflow-scroll="true" padding="true" class="has-header has-tabs">
+    <ion-list>
+      <label class="item item-input item-stacked-label">
+        <span class="input-label">Usuario o e-mail</span>
+        <input type="text" placeholder="Ingrese nombre de usuario o e-mail" ng-model="usuario">
+      </label>
+      <label class="item item-input item-stacked-label">
+        <span class="input-label">Password</span>
+        <input type="password" placeholder="Ingrese contraseña" ng-model="password">
+      </label>
+    </ion-list>
+    <button ng-click="ingresar()" class="button button-block icon ion-log-in"> Ingresar</button>
+  </ion-content>
+</ion-view>

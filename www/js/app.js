@@ -27,6 +27,11 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
       templateUrl: 'templates/inicio.html'
     })
 
+    .state('login', {
+      url: '/login',
+      templateUrl: 'templates/login.html'
+    })
+
     .state('lista', {
       url: '/lista',
       templateUrl: 'templates/lista.html'
@@ -77,6 +82,24 @@ myApp.run(['$rootScope', '$ionicPlatform', 'ConnectivityMonitor', '$ionicPopup',
       }
 
       GeolocationMonitor.startWatching();
+
+      if (localStorage.get('isLogged') === 'true'){
+        $rootScope.usuario = localStorage.getObject('usuario');
+        $rootScope.sideMenu = [
+          {nombre: 'Mi perfil', ref: 'perfil'},
+          {nombre: 'Mis compras', ref: 'compras'},
+          {nombre: 'Promociones', ref: 'promociones'}
+        ]
+      } else {
+        $rootScope.usuario = {
+          nombre: 'Anónimo',
+          avatar: 'img/avatar_guest.png'
+        };
+        $rootScope.sideMenu = [
+          {nombre: 'Iniciar sesión', ref: 'login'},
+          {nombre: 'Mis compras', ref: 'compras'}
+        ]
+      }
 
     });
   }]);

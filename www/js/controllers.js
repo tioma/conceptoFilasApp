@@ -327,3 +327,14 @@ myApp.controller('comerciosCtrl', ['$scope', 'comerciosFactory', function($scope
   }
 
 }]);
+
+myApp.controller('loginCtrl', ['$scope', function($scope){
+
+  $scope.usuario = '';
+  $scope.password = '';
+
+  $scope.ingresar = function(){
+
+  }
+
+}]);

@@ -1,7 +1,10 @@
 <ion-view ng-controller="inicioCtrl">
-  <div class="bar bar-header bar-calm">
+  <ion-header-bar align-title="center" class="bar-calm">
+    <div class="buttons">
+      <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+    </div>
     <h1 class="title">Tu fila</h1>
-  </div>
+  </ion-header-bar>
   <ion-content overflow-scroll="true" padding="true" class="has-header has-tabs">
     <div ng-if="initialRender">
       <div ng-if="online">
