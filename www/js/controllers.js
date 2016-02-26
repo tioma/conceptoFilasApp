@@ -55,7 +55,7 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
                 $ionicLoading.hide();
                 $ionicPopup.alert({
                   title: 'Error',
-                  content: 'Se produjo un error al intentar conectar con el servidor ' + servidor.url + ' mensaje: ' + err.message,
+                  content: 'Se produjo un error al intentar conectar con el servidor ' + comercio.serverUrl + ' mensaje: ' + err.message,
                   cssClass: 'alert-popup'
                 }).then(function(result){
                   localStorage.set('isOnline', false);
@@ -118,7 +118,9 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
         ioSocket: myIoSocket
       });
 
-      mySocket.on('estadoSistema', function(data){
+      mySocket.on('actualizarFila', function(data){
+        console.log(JSON.stringify(data));
+
         if (data.cajas.length > 0){
           $scope.sistemaHabilitado = true;
           $scope.clientesEnCola = data.colaGeneral.length;
@@ -126,17 +128,16 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
         } else {
           $scope.sistemaHabilitado = false;
         }
-        $scope.initialRender = true;
-      });
 
-      mySocket.on('actualizarFila', function(data){
         //debería enviar la cola general y el tiempo promedio de atención por persona
         $scope.clientesEnCola = data.colaGeneral.length;
         //Determino mi posición en la fila
         var posicion = 0;
+        var meEncontre = false;
         data.colaGeneral.forEach(function(cliente){
           posicion++;
           if (cliente.id == miUUID){
+            meEncontre = true;
             var retrasoPromedio = data.tiempoPromedioAtencion * (posicion - 1);
             $scope.posicion = posicion;
             if (posicion > 1){
@@ -144,10 +145,13 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
             } else {
               $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Sos el próximo en la fila, estate atento porque en unos instantes vas a ser llamado.')
             }
+            $scope.haciendoFila = true;
           }
-          $scope.haciendoFila = true;
         });
+        if (!meEncontre) $scope.haciendoFila = false;
+        $scope.initialRender = true;
       });
+
     }
 
     if ($scope.online && $scope.enComercio){

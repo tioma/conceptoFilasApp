@@ -31,6 +31,8 @@ myApp.factory('comerciosFactory', ['$cordovaSQLite', 'positionService', function
               serverUrl: res.rows.item(i).serverUrl
             };
             encontrado = true;
+            //hardcode de direccion para prueba
+            //comercio.serverUrl = 'http://192.168.0.103';
             callback(comercio, encontrado);
           }
         }
