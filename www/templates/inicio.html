@@ -6,18 +6,18 @@
     <h1 class="title">Tu fila</h1>
   </ion-header-bar>
   <ion-content overflow-scroll="true" padding="true" class="has-header has-tabs">
-    <div ng-if="initialRender">
+    <div ng-if="sistema.initialRender">
       <div ng-if="online">
-        <div ng-if="sistemaHabilitado" class="cardRight card">
+        <div ng-if="sistema.cajas.length > 0" class="cardRight card">
           <div class="item item-divider item-positive">
             Estado del sistema
           </div>
           <div class="item item-text-wrap">
             <i class="icon ion-android-cart"></i>
-            El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in cajasAtendiendo track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo
+            El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in sistema.cajas track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo
           </div>
         </div>
-        <div ng-if="!sistemaHabilitado && enComercio" class="cardRight card">
+        <div ng-if="sistema.cajas.length == 0 && cliente.enComercio" class="cardRight card">
           <div class="item item-divider item-assertive">
             Estado del sistema
           </div>
@@ -26,18 +26,26 @@
             Lo sentimos, en este momento no hay cajas habilitadas.
           </div>
         </div>
-        <div ng-if="sistemaHabilitado && !haciendoFila" class="cardLeft card">
+        <div ng-if="sistema.cajas.length > 0 && !cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" class="cardLeft card">
           <div class="item item-divider item-balanced">
             Fila
           </div>
           <div class="item item-text-wrap">
             <i class="icon ion-android-person"></i>
-            Actualmente <span ng-show="clientesEnCola == 0">no </span>hay <span ng-show="clientesEnCola > 0">{{clientesEnCola}} </span>clientes haciendo la fila.
+            Actualmente <span ng-show="sistema.colaGeneral.length == 0">no </span>hay <span ng-show="sistema.colaGeneral.length > 0">{{sistema.colaGeneral.length}} </span>clientes haciendo la fila.
           </div>
         </div>
-        <div ng-if="haciendoFila" class="cardLeft card">
+        <div ng-if="cliente.estaEnFilaGeneral()" class="cardLeft card">
           <div class="item item-divider item-balanced">
             En la fila
+          </div>
+          <div class="item item-text-wrap">
+            <p ng-bind-html="estadoFila"></p>
+          </div>
+        </div>
+        <div ng-if="cliente.estaEnCaja()" class="cardSurprise card">
+          <div class="item item-divider item-balanced">
+            Es tu turno
           </div>
           <div class="item item-text-wrap">
             <p ng-bind-html="estadoFila"></p>
@@ -54,7 +62,7 @@
             Vuelve a conectarte para actualizar el estado del sistema.
           </div>
         </div>
-        <div ng-if="haciendoFila" class="cardLeft card">
+        <div ng-if="cliente.estaEnFilaGeneral()" class="cardLeft card">
           <div class="item item-divider item-assertive">
             Sin conexión
           </div>
@@ -64,7 +72,7 @@
           </div>
         </div>
       </div>
-      <div ng-if="!enComercio && !errorGPS" class="cardRight card">
+      <div ng-if="!cliente.estaEnComercio() && !errorGPS" class="cardRight card">
         <div class="item item-divider item-assertive">
           Sin sistema
         </div>
@@ -83,9 +91,9 @@
         </div>
       </div>
       <div ng-if="online">
-        <a href="#" ng-show="!haciendoFila" ng-click="hacerFila()" ng-disabled="!sistemaHabilitado" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
-        <a href="#" ng-show="haciendoFila" ng-click="retrasarme()" class="zoomButton button button-energized button-block  icon-left ion-android-contacts">Retrasarme</a>
-        <a href="#" ng-show="haciendoFila" ng-click="irme()" class="zoomButton button button-assertive button-block  icon-left ion-android-cancel">Irme</a>
+        <a href="#" ng-show="!cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" ng-click="hacerFila()" ng-disabled="sistema.cajas.length == 0" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
+        <a href="#" ng-show="cliente.estaEnFilaGeneral() || cliente.estaEnCaja()" ng-click="retrasarme()" class="zoomButton button button-energized button-block  icon-left ion-android-contacts">Retrasarme</a>
+        <a href="#" ng-show="cliente.estaEnFilaGeneral() || cliente.estaEnCaja()" ng-click="irme()" class="zoomButton button button-assertive button-block  icon-left ion-android-cancel">Irme</a>
       </div>
     </div>
   </ion-content>

@@ -21,6 +21,11 @@
   animation: bounceOutLeft ease 1s;
 }
 
+.cardSurprise.ng-enter{
+  -webkit-animation: tada ease 3s;
+  animation: tada ease 3s
+}
+
 .zoomButton.ng-hide-remove {
   -webkit-animation: zoomInUp ease 3s;
   animation: zoomInUp ease 3s;

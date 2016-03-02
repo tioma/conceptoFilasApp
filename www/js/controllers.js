@@ -92,24 +92,25 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
 
   }]);
 
-myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce', 'comerciosFactory', '$http',
-  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce, comerciosFactory, $http) {
+myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce', 'comerciosFactory', '$http', 'Cliente',
+  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce, comerciosFactory, $http, Cliente) {
 
-    //Flags de control
-    $scope.initialRender = false;
-    $scope.sistemaHabilitado = false;
-    $scope.haciendoFila = false;
-    $scope.enCaja = false;
-    $scope.online = (localStorage.get('isOnline') === 'true');
-    $scope.enComercio = (localStorage.get('enComercio') === 'true');
-    $scope.errorGPS = (localStorage.get('errorGPS') === 'true');
-    console.log('error de GPS:' + $scope.errorGPS);
-    console.log('enComercio esta: ' + $scope.enComercio);
-    console.log(typeof $scope.enComercio);
-    console.log(typeof $scope.online);
+    $scope.sistema = {
+      initialRender: false,
+      colaGeneral: [],
+      cajas: [],
+      retrasoPromedio: []
+    };
+
+    $scope.cliente = new Cliente(
+      localStorage.get('uuid'),
+      localStorage.get('enComercio') === 'true'
+    );
+
+    $scope.online = localStorage.get('isOnline') === 'true';
+    $scope.errorGPS = localStorage.get('errorGPS') === 'true';
 
     var mySocket = null;
-    var miUUID = localStorage.get('uuid');
 
     function conectarSocket(){
       var myIoSocket = io.connect(localStorage.getObject('comercio').serverUrl, { query: 'token=' + localStorage.get('token')});
@@ -119,47 +120,31 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
       });
 
       mySocket.on('actualizarFila', function(data){
-        console.log(JSON.stringify(data));
 
-        if (data.cajas.length > 0){
-          $scope.sistemaHabilitado = true;
-          $scope.clientesEnCola = data.colaGeneral.length;
-          $scope.cajasAtendiendo = data.cajas;
-        } else {
-          $scope.sistemaHabilitado = false;
+        $scope.sistema.colaGeneral = data.colaGeneral;
+        $scope.sistema.cajas = data.cajas;
+
+        $scope.cliente.setSistema($scope.sistema);
+
+        if ($scope.cliente.estaEnFilaGeneral()){
+          if ($scope.cliente.getPosicion() > 1){
+            $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Perfecto, ya estás en la fila. Tu posición es la número <b>' + $scope.cliente.getPosicion() + '</b>. Tenés una espera promedio de <b>' + $scope.cliente.getEsperaPromedio() + '</b> minutos hasta ser llamado');
+          } else {
+            $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Sos el próximo en la fila, estate atento porque en unos instantes vas a ser llamado.')
+          }
         }
 
-        //debería enviar la cola general y el tiempo promedio de atención por persona
-        $scope.clientesEnCola = data.colaGeneral.length;
-        //Determino mi posición en la fila
-        var posicion = 0;
-        var meEncontre = false;
-        data.colaGeneral.forEach(function(cliente){
-          posicion++;
-          if (cliente.id == miUUID){
-            meEncontre = true;
-            var retrasoPromedio = data.tiempoPromedioAtencion * (posicion - 1);
-            $scope.posicion = posicion;
-            if (posicion > 1){
-              $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Perfecto, ya estás en la fila. Tu posición es la número <b>' + posicion + '</b>. Tenés una espera promedio de <b>' + retrasoPromedio + '</b> minutos hasta ser llamado');
-            } else {
-              $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Sos el próximo en la fila, estate atento porque en unos instantes vas a ser llamado.')
-            }
-            $scope.haciendoFila = true;
-          }
-        });
-        if (!meEncontre) $scope.haciendoFila = false;
-        $scope.initialRender = true;
-      });
+        if ($scope.cliente.estaEnCaja()){
+          $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Acercate a la caja número ' + $scope.cliente.getCaja() + '.');
+        }
 
+        $scope.sistema.initialRender = true;
+      });
     }
 
-    if ($scope.online && $scope.enComercio){
-      console.log('qué esta pasando aca?');
+    if ($scope.online && $scope.cliente.estaEnComercio()){
       conectarSocket();
-
     } else {
-      console.log('hola');
       $scope.initialRender = true;
     }
 
@@ -171,7 +156,7 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
         cancelText: "Cancelar"
       }).then(function(confirm){
         if (confirm){
-          if ($scope.haciendoFila) mySocket.emit('salirFila');
+          if ($scope.cliente.estaEnFilaGeneral()) mySocket.emit('salirFila');
           ionic.Platform.exitApp();
         }
       })
@@ -196,66 +181,54 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
       }).then(function(confirm){
         if (confirm){
           mySocket.emit('salirFila');
-          $scope.haciendoFila = false;
         }
       })
     };
 
     $scope.$on('offline', function(){
-      console.log('nos desconectamos');
       $scope.online = false;
     });
 
     $scope.$on('online', function(){
-      console.log('nos conectamos');
       $scope.online = true;
-      if ($scope.haciendoFila) mySocket.emit('pedirActualizacion');
+      if ($scope.cliente.estaEnComercio()) mySocket.emit('pedirActualizacion');
     });
 
     $scope.$on('nuevaPosicion', function(ev, miPosicion){
-      console.log('llego nueva posicion: ' + JSON.stringify(miPosicion));
-      localStorage.set('errorGPS', false);
       $scope.errorGPS = false;
-      if (!$scope.enComercio){
+      if (!$scope.cliente.estaEnComercio()){
         //Determinar si se encuentra en un comercio y conectar
         comerciosFactory.getComercioCliente(miPosicion, function(comercio, ok){
           if (ok){
-            console.log('si estaba en un comercio');
-            $scope.enComercio = true;
+            $scope.cliente.setEnComercio(true);
             localStorage.set('enComercio', true);
             localStorage.setObject('comercio', comercio);
             var uuid = {
-              uuid: miUUID
+              uuid: $scope.cliente.id
             };
             $http.post(comercio.serverUrl + '/handshake', uuid).then(function(data){
-              console.log('hizo el handshake ok');
               localStorage.set('token', data.data.token);
               localStorage.set('isOnline', true);
               $scope.online = true;
               conectarSocket();
             }, function(err){
-              console.log('no hizo el handshake');
               localStorage.set('isOnline', false);
               $scope.online = false;
             })
           } else {
-            console.log('no se encontro un comercio');
             localStorage.set('enComercio', false);
-            $scope.enComercio = false;
+            $scope.cliente.setEnComercio(false);
           }
         });
       }
     });
 
     $scope.$on('errorGPS', function(){
-      console.log('llego error de gps');
-      console.log('el initialRender esta: ' + $scope.initialRender);
       localStorage.set('errorGPS', true);
       $scope.errorGPS = true;
     });
 
     $scope.$on('$destroy', function(){
-      console.log('CHAU CHAU CHAU CHAUUUUUUUU');
       mySocket.emit('salirFila');
     });
 

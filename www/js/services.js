@@ -167,15 +167,66 @@ myApp.factory('localStorage', ['$window', function($window){
   }
 }]);
 
-/*myApp.factory('socket', ['socketFactory', 'localStorage', function(socketFactory, localStorage){
-  var myIoSocket = io.connect(localStorage.get('server'), { query: 'token=' + localStorage.get('token')});
+myApp.factory('Cliente', [function(){
 
-  var mySocket = socketFactory({
-    ioSocket: myIoSocket
-  });
+  function Cliente (id, enComercio){
+    this.id = id;
+    this.enComercio = enComercio;
+  }
 
-  return mySocket;
-}]);*/
+  Cliente.prototype = {
+    getId: function(){
+      return this.id;
+    },
+    setSistema: function(unSistema){
+      this.sistema = unSistema;
+    },
+    estaEnComercio: function(){
+      return this.enComercio;
+    },
+    setEnComercio: function(estado){
+      this.enComercio = estado;
+    },
+    getPosicion: function(){
+      return this.posicion;
+    },
+    getCaja: function(){
+      return this.miCaja;
+    },
+    estaEnFilaGeneral: function(){
+      var posicion = 0;
+      var estoy = false;
+      var that = this;
+      this.sistema.colaGeneral.forEach(function(unCliente){
+        posicion++;
+        if (unCliente.id == that.id){
+          estoy = true;
+          that.posicion = posicion;
+        }
+      });
+      return estoy;
+    },
+    estaEnCaja: function(){
+      var estoy = false;
+      var that = this;
+      this.sistema.cajas.forEach(function(unaCaja){
+        unaCaja.cola.forEach(function(unCliente){
+          if (unCliente.id == that.id){
+            estoy = true;
+            that.miCaja = unaCaja.numero;
+          }
+        })
+      });
+      return estoy;
+    },
+    getEsperaPromedio: function(){
+      return (this.posicion - 1) * this.sistema.retrasoPromedio;
+    }
+  };
+
+  return (Cliente);
+
+}]);
 
 myApp.service('positionService', [function(){
 
