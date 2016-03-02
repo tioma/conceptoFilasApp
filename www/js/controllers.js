@@ -104,7 +104,8 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
 
     $scope.cliente = new Cliente(
       localStorage.get('uuid'),
-      localStorage.get('enComercio') === 'true'
+      localStorage.get('enComercio') === 'true',
+      $scope.sistema
     );
 
     $scope.online = localStorage.get('isOnline') === 'true';
@@ -123,8 +124,6 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
 
         $scope.sistema.colaGeneral = data.colaGeneral;
         $scope.sistema.cajas = data.cajas;
-
-        $scope.cliente.setSistema($scope.sistema);
 
         if ($scope.cliente.estaEnFilaGeneral()){
           if ($scope.cliente.getPosicion() > 1){

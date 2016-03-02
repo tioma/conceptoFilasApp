@@ -90,6 +90,9 @@
           No hemos podido determinar tu ubicación. Activa tu GPS para saber que te encuentras en un comercio habilitado.
         </div>
       </div>
+      <div class="back-cola">
+        <i ng-repeat="person in sistema.colaGeneral.slice().reverse()" ng-class="cliente.getId() == person.id ? 'assertive' : 'dark'" class="cliente-cola icon ion-android-person"></i>
+      </div>
       <div ng-if="online">
         <a href="#" ng-show="!cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" ng-click="hacerFila()" ng-disabled="sistema.cajas.length == 0" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
         <a href="#" ng-show="cliente.estaEnFilaGeneral() || cliente.estaEnCaja()" ng-click="retrasarme()" class="zoomButton button button-energized button-block  icon-left ion-android-contacts">Retrasarme</a>

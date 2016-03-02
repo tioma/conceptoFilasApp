@@ -169,9 +169,10 @@ myApp.factory('localStorage', ['$window', function($window){
 
 myApp.factory('Cliente', [function(){
 
-  function Cliente (id, enComercio){
+  function Cliente (id, enComercio, sistema){
     this.id = id;
     this.enComercio = enComercio;
+    this.sistema = sistema;
   }
 
   Cliente.prototype = {

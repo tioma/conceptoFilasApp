@@ -1,6 +1,25 @@
 /* Empty. Add your own CSS if you like */
 
 /* Algunas animaciones con animate.css */
+.back-cola {
+  width: 100%;
+  height: auto;
+  text-align: right;
+}
+.cliente-cola {
+  font-size: 48px;
+}
+
+.cliente-cola.ng-enter {
+  -webkit-animation: slideInLeft ease 3s;
+  animation: slideInLeft ease 3s;
+}
+
+.cliente-cola.ng-enter-stagger {
+  -webkit-animation-delay: 0.2s;
+  animation-delay: 0.2s;
+}
+
 .cardLeft.ng-enter {
   -webkit-animation: bounceInLeft ease 2s;
   animation: bounceInLeft ease 2s;
