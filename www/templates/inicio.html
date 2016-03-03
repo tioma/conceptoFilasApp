@@ -8,25 +8,23 @@
   <ion-content overflow-scroll="true" padding="true" class="has-header has-tabs">
     <div ng-if="sistema.initialRender">
       <div ng-if="online">
-        <div ng-if="sistema.cajas.length > 0" class="cardRight card">
+        <div ng-if="sistema.cajasAtendiendo.length > 0" class="cardRight card">
           <div class="item item-divider item-positive">
             Estado del sistema
           </div>
           <div class="item item-text-wrap">
-            <i class="icon ion-android-cart"></i>
-            El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in sistema.cajas track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo
+            <p ng-bind-html="estadoCajas"></p>
           </div>
         </div>
-        <div ng-if="sistema.cajas.length == 0 && cliente.enComercio" class="cardRight card">
+        <div ng-if="sistema.cajasAtendiendo.length == 0 && cliente.enComercio" class="cardRight card">
           <div class="item item-divider item-assertive">
             Estado del sistema
           </div>
           <div class="item item-text-wrap assertive">
-            <i class="icon ion-android-sad"></i>
-            Lo sentimos, en este momento no hay cajas habilitadas.
+            <p ng-bind-html="estadoCajas"></p>
           </div>
         </div>
-        <div ng-if="sistema.cajas.length > 0 && !cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" class="cardLeft card">
+        <div ng-if="sistema.cajasAtendiendo.length > 0 && !cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" class="cardLeft card">
           <div class="item item-divider item-balanced">
             Fila
           </div>
@@ -91,10 +89,10 @@
         </div>
       </div>
       <div class="back-cola">
-        <i ng-repeat="person in sistema.colaGeneral.slice().reverse()" ng-class="cliente.getId() == person.id ? 'assertive' : 'dark'" class="cliente-cola icon ion-android-person"></i>
+        <div ng-repeat="person in sistema.colaGeneral" class="cliente-cola"><i ng-class="cliente.getId() == person.id ? 'assertive' : 'dark'" class="icon ion-android-person"></i></div>
       </div>
       <div ng-if="online">
-        <a href="#" ng-show="!cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" ng-click="hacerFila()" ng-disabled="sistema.cajas.length == 0" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
+        <a href="#" ng-show="!cliente.estaEnFilaGeneral() && !cliente.estaEnCaja()" ng-click="hacerFila()" ng-disabled="sistema.cajasAtendiendo.length == 0" class="zoomButton button button-calm button-block  icon-left ion-android-cart">Hacer la fila!</a>
         <a href="#" ng-show="cliente.estaEnFilaGeneral() || cliente.estaEnCaja()" ng-click="retrasarme()" class="zoomButton button button-energized button-block  icon-left ion-android-contacts">Retrasarme</a>
         <a href="#" ng-show="cliente.estaEnFilaGeneral() || cliente.estaEnCaja()" ng-click="irme()" class="zoomButton button button-assertive button-block  icon-left ion-android-cancel">Irme</a>
       </div>

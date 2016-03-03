@@ -92,8 +92,8 @@ myApp.controller('loadingCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDe
 
   }]);
 
-myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce', 'comerciosFactory', '$http', 'Cliente',
-  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce, comerciosFactory, $http, Cliente) {
+myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce', 'comerciosFactory', '$http', 'Cliente', '$cordovaVibration',
+  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce, comerciosFactory, $http, Cliente, $cordovaVibration) {
 
     $scope.sistema = {
       initialRender: false,
@@ -125,6 +125,21 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
         $scope.sistema.colaGeneral = data.colaGeneral;
         $scope.sistema.cajas = data.cajas;
 
+        var cajasAtendiendo = [];
+        $scope.sistema.cajas.forEach(function(caja){
+          if (caja.atendiendo) cajasAtendiendo.push(caja);
+        });
+
+        $scope.sistema.cajasAtendiendo = cajasAtendiendo;
+
+        if (cajasAtendiendo.length == 0){
+          $scope.estadoCajas = $sce.trustAsHtml('<i class="icon ion-sad"></i> Lo sentimos, actualmente no hay cajas atendiendo');
+        } else if (cajasAtendiendo.length == 1) {
+          $scope.estadoCajas = $sce.trustAsHtml('<i class="icon ion-android-cart"></i> El sistema se encuentra habilitado. La caja numero ' + cajasAtendiendo[0].numero + ' se encuentra atendiendo');
+        } else {
+          $scope.estadoCajas = $sce.trustAsHtml('<i class="icon ion-android-cart"></i> El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in sistema.cajasAtendiendo track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo');
+        }
+
         if ($scope.cliente.estaEnFilaGeneral()){
           if ($scope.cliente.getPosicion() > 1){
             $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Perfecto, ya estás en la fila. Tu posición es la número <b>' + $scope.cliente.getPosicion() + '</b>. Tenés una espera promedio de <b>' + $scope.cliente.getEsperaPromedio() + '</b> minutos hasta ser llamado');
@@ -134,7 +149,13 @@ myApp.controller('inicioCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socket
         }
 
         if ($scope.cliente.estaEnCaja()){
+          if ($scope.cliente.getNotifCaja){
+            $scope.cliente.setNotifCaja(false);
+            $cordovaVibration.vibrate(2000);
+          }
           $scope.estadoFila = $sce.trustAsHtml('<i class="icon ion-android-person"></i> Acercate a la caja número ' + $scope.cliente.getCaja() + '.');
+        } else {
+          $scope.cliente.setNotifCaja(true);
         }
 
         $scope.sistema.initialRender = true;

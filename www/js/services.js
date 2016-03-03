@@ -173,14 +173,18 @@ myApp.factory('Cliente', [function(){
     this.id = id;
     this.enComercio = enComercio;
     this.sistema = sistema;
+    this.notifCaja = true;
   }
 
   Cliente.prototype = {
     getId: function(){
       return this.id;
     },
-    setSistema: function(unSistema){
-      this.sistema = unSistema;
+    getNotifCaja: function(){
+      return this.notifCaja;
+    },
+    setNotifCaja: function(onOff){
+      this.notifCaja = onOff;
     },
     estaEnComercio: function(){
       return this.enComercio;
