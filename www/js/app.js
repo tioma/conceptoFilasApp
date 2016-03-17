@@ -17,36 +17,63 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
   // Each state's controller can be found in controllers.js
   $stateProvider
 
-    .state('cargando', {
-      url: '/cargando',
-      templateUrl: 'templates/cargando.html'
+    .state('tabs', {
+      url:'/tabs',
+      abstract: true,
+      templateUrl: 'templates/tabs.html'
     })
 
-    .state('inicio', {
-      url: '/inicio',
-      templateUrl: 'templates/inicio.html'
+    .state('tabs.hacerFila', {
+      url:'/hacerFila',
+      views: {
+        'fila-tab': {
+          templateUrl: 'templates/hacerFila.html',
+          controller: 'hacerFilaCtrl'
+        }
+      }
     })
 
-    .state('login', {
-      url: '/login',
-      templateUrl: 'templates/login.html'
+    .state('tabs.tuFila', {
+      url: '/tuFila',
+      views: {
+        'fila-tab':{
+          templateUrl: 'templates/tuFila.html',
+          controller: 'filaCtrl'
+        }
+      }
     })
 
-    .state('lista', {
-      url: '/lista',
-      templateUrl: 'templates/lista.html'
+    .state('tabs.gracias', {
+      url: '/gracias',
+      views: {
+        'fila-tab': {
+          templateUrl: 'templates/gracias.html'
+        }
+      }
     })
 
-    .state('comercios', {
+    .state('tabs.compras', {
+      url: '/compras',
+      views: {
+        'compras-tab': {
+          templateUrl: 'templates/compras.html'
+        }
+      }
+    })
+
+    .state('tabs.comercios', {
       url: '/comercios',
-      templateUrl: 'templates/comercios.html'
+      views: {
+        'comercios-tab': {
+          templateUrl: 'templates/comercios.html'
+        }
+      }
     })
-
 
   ;
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/cargando');
+  $urlRouterProvider.otherwise('/tabs/hacerFila');
 
 });
 

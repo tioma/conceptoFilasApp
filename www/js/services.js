@@ -36,7 +36,9 @@ myApp.factory('comerciosFactory', ['$cordovaSQLite', 'positionService', function
             callback(comercio, encontrado);
           }
         }
-        callback(comercio, encontrado);
+        if (!encontrado) {
+          callback(comercio, encontrado);
+        }
       }, function(err){
         callback(err, false);
       })
@@ -268,3 +270,20 @@ myApp.service('positionService', [function(){
 
 }]);
 
+myApp.service('socketConnection', ['socketFactory', function(socketFactory){
+
+  return {
+    connect: function(url, token){
+      console.log('conectamos un socket');
+      var myIoSocket = io.connect(url, { query: 'token=' + token});
+
+      var mySocket = socketFactory({
+        ioSocket: myIoSocket
+      });
+
+      mySocket.forward('actualizarFila');
+      mySocket.forward('clienteAtendido');
+    }
+
+  }
+}]);

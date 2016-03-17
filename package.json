@@ -31,7 +31,11 @@
       "locator": "https://github.com/an-rahulpandey/cordova-plugin-dbcopy.git",
       "id": "me.rahul.plugins.sqlDB"
     },
-    "cordova-plugin-vibration"
+    "cordova-plugin-vibration",
+    {
+      "locator": "https://github.com/deefactorial/Cordova-open-native-settings.git",
+      "id": "com.phonegap.plugins.nativesettingsopener"
+    }
   ],
   "cordovaPlatforms": [
     "android",
