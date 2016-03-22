@@ -77,6 +77,7 @@ myApp.controller('hacerFilaCtrl', ['$scope', '$ionicLoading', '$http', 'Geolocat
           var uuid = {
             uuid: $scope.cliente.getId()
           };
+          $scope.comercio = comercio;
           $http.post(comercio.serverUrl + '/handshake', uuid).then(function(data){
             //localStorage.set('token', data.data.token);
             $scope.token = data.data.token;

@@ -58,7 +58,8 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
       url: '/compras',
       views: {
         'compras-tab': {
-          templateUrl: 'templates/compras.html'
+          templateUrl: 'templates/compras.html',
+          controller: 'listaCtrl'
         }
       }
     })
@@ -67,7 +68,8 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
       url: '/comercios',
       views: {
         'comercios-tab': {
-          templateUrl: 'templates/comercios.html'
+          templateUrl: 'templates/comercios.html',
+          controller: 'comerciosCtrl'
         }
       }
     })
