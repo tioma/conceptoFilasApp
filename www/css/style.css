@@ -13,17 +13,17 @@
 
 .cliente-cola {
   font-size: 48px;
-  display: inline-block;
+  display: block;
 }
 
 .cliente-cola.ng-enter {
-  -webkit-animation: slideInRight ease 2s;
-  animation: slideInRight ease 2s;
+  -webkit-animation: slideInUp ease 0.5s;
+  animation: slideInUp ease 0.5s;
 }
 
 .cliente-cola.ng-enter-stagger {
-  -webkit-animation-delay: 1s;
-  animation-delay: 1s;
+  -webkit-animation-delay: 0.2s;
+  animation-delay: 0.2s;
 }
 
 .cardLeft.ng-enter {

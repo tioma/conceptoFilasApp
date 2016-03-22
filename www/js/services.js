@@ -169,11 +169,10 @@ myApp.factory('localStorage', ['$window', function($window){
   }
 }]);
 
-myApp.factory('Cliente', [function(){
+myApp.factory('Cliente', ['$cordovaDevice', function($cordovaDevice){
 
-  function Cliente (id, enComercio, sistema){
-    this.id = id;
-    this.enComercio = enComercio;
+  function Cliente (sistema){
+    this.id = $cordovaDevice.getUUID();
     this.sistema = sistema;
     this.notifCaja = true;
   }
@@ -187,12 +186,6 @@ myApp.factory('Cliente', [function(){
     },
     setNotifCaja: function(onOff){
       this.notifCaja = onOff;
-    },
-    estaEnComercio: function(){
-      return this.enComercio;
-    },
-    setEnComercio: function(estado){
-      this.enComercio = estado;
     },
     getPosicion: function(){
       return this.posicion;
@@ -227,7 +220,7 @@ myApp.factory('Cliente', [function(){
       return estoy;
     },
     getEsperaPromedio: function(){
-      return (this.posicion - 1) * this.sistema.retrasoPromedio;
+      return (this.posicion - 1) * this.sistema.tiempoPromedioAtencion;
     }
   };
 
@@ -271,19 +264,55 @@ myApp.service('positionService', [function(){
 }]);
 
 myApp.service('socketConnection', ['socketFactory', function(socketFactory){
+  var mySocket = null;
 
   return {
     connect: function(url, token){
+      if (mySocket) this.cerrarConexion();
       console.log('conectamos un socket');
       var myIoSocket = io.connect(url, { query: 'token=' + token});
 
-      var mySocket = socketFactory({
+      mySocket = socketFactory({
         ioSocket: myIoSocket
       });
 
       mySocket.forward('actualizarFila');
       mySocket.forward('clienteAtendido');
+    },
+    hacerFila: function(){
+      console.log('hacer fila');
+      mySocket.emit('hacerFila');
+    },
+    salirFila: function(){
+      mySocket.emit('salirFila');
+    },
+    pedirActualizacion: function(){
+      mySocket.emit('pedirActualizacion');
+    },
+    cerrarConexion: function(){
+      console.log('cerramos conexion');
+      mySocket.disconnect();
     }
 
+  }
+}]);
+
+myApp.service('comerceSystem', [function(){
+  var mySystem = {};
+
+  return {
+    getSystem: function(){
+      return mySystem;
+    },
+    setSystem: function(system){
+      mySystem = system;
+    },
+    estaHabilitado: function(){
+      return mySystem.cajas.some(function(caja, index, array){
+        console.log(JSON.stringify(caja));
+        console.log(caja.atendiendo);
+        return caja.atendiendo;
+      })
+    }
   }
 }]);

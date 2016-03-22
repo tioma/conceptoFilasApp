@@ -1,8 +1,16 @@
 /**
  * Created by Artiom on 09/03/2016.
  */
-myApp.controller('hacerFilaCtrl', ['$scope', '$ionicLoading', '$http', '$cordovaDevice', 'GeolocationMonitor', '$ionicPopup', 'comerciosFactory', 'localStorage', '$state', 'socketConnection',
-  function($scope, $ionicLoading, $http, $cordovaDevice, GeolocationMonitor, $ionicPopup, comerciosFactory, localStorage, $state, socketConnection){
+myApp.controller('hacerFilaCtrl', ['$scope', '$ionicLoading', '$http', 'GeolocationMonitor', '$ionicPopup', 'comerciosFactory', 'localStorage', '$state', 'socketConnection', 'comerceSystem', 'Cliente',
+  function($scope, $ionicLoading, $http, GeolocationMonitor, $ionicPopup, comerciosFactory, localStorage, $state, socketConnection, comerceSystem, Cliente){
+
+    $scope.sistema = {
+      colaGeneral: [],
+      cajas: [],
+      retrasoPromedio: 2
+    };
+
+    $scope.huboError = false;
 
     $ionicLoading.show({
       content: 'Cargando',
@@ -35,13 +43,12 @@ myApp.controller('hacerFilaCtrl', ['$scope', '$ionicLoading', '$http', '$cordova
     }, false);
 
     function obtenerPosicion(){
-      console.log('obtener posicion');
       GeolocationMonitor.getCurrentLocation(function(miPosicion, ok){
-        console.log('miPosicion');
         if (ok){
           cargaInicial(miPosicion);
         } else {
           $scope.deshabilitarSistema = true;
+          $scope.huboError = true;
           $ionicLoading.hide();
           $ionicPopup.confirm({
             title: 'Usar GPS',
@@ -62,21 +69,18 @@ myApp.controller('hacerFilaCtrl', ['$scope', '$ionicLoading', '$http', '$cordova
     }
 
     function cargaInicial(miPosicion){
-      console.log('carga inicial');
-      var miUUID = $cordovaDevice.getUUID();
-      localStorage.set('uuid', miUUID);
+      $scope.cliente = new Cliente($scope.sistema);
 
       localStorage.setObject('posicion', miPosicion);
       comerciosFactory.getComercioCliente(miPosicion, function(comercio, ok){
-        console.log('getComercioCliente termino ' + ok);
         if (ok){
           var uuid = {
-            uuid: miUUID
+            uuid: $scope.cliente.getId()
           };
           $http.post(comercio.serverUrl + '/handshake', uuid).then(function(data){
-            localStorage.set('token', data.data.token);
+            //localStorage.set('token', data.data.token);
+            $scope.token = data.data.token;
             $ionicLoading.hide();
-            console.log('mando a conectar un socket');
             socketConnection.connect(comercio.serverUrl, data.data.token);
           }, function(err){
             $ionicLoading.hide();
@@ -102,10 +106,17 @@ myApp.controller('hacerFilaCtrl', ['$scope', '$ionicLoading', '$http', '$cordova
     }
 
     $scope.$on('socket:actualizarFila', function(ev, data){
-      console.log('llego el evento del socket');
-      data.cajas.forEach(function(caja){
-        if (caja.atendiendo) $scope.deshabilitarSistema = false;
-      });
+      comerceSystem.setSystem(data);
+      $scope.sistema = data;
+      $scope.deshabilitarSistema = !comerceSystem.estaHabilitado();
+    });
+
+    $scope.$on('nuevaPosicion', function(ev, miPosicion){
+      console.log('nueva posicion');
+      if ($scope.huboError){
+        $scope.huboError = false;
+        cargaInicial(miPosicion);
+      }
     });
 
   }]);

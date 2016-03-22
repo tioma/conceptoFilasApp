@@ -1,5 +1,43 @@
 <ion-view view-title="Tu fila">
   <ion-content class="padding">
-
+    <div ng-show="cliente.estaEnFilaGeneral()">
+      <div class="row">
+        <div class="col col-10">
+          <div ng-repeat="person in sistema.colaGeneral" class="cliente-cola">
+            <i ng-class="cliente.getId() == person.id ? 'assertive' : 'dark'" class="icon ion-android-person"></i>
+          </div>
+        </div>
+        <div class="col col-offset-10 col-80">
+          <div ng-if="sistema.cajasAtendiendo.length > 0" class="cardRight card">
+            <div class="item item-divider item-positive">
+              Cajas
+            </div>
+            <div class="item item-text-wrap">
+              <p ng-bind-html="estadoCajas"></p>
+            </div>
+          </div>
+          <div class="cardLeft card">
+            <div class="item item-divider item-balanced">
+              Fila
+            </div>
+            <div class="item item-text-wrap">
+              <i class="icon ion-android-person"></i>
+              Estás en la posición {{ cliente.getPosicion() }} en la fila. Tenés una espera estimada de {{ cliente.getEsperaPromedio() }} minutos.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div ng-show="cliente.estaEnCaja()">
+      <div ng-if="cliente.estaEnCaja()" class="cardSurprise card">
+        <div class="item item-divider item-balanced">
+          Es tu turno
+        </div>
+        <div class="item item-text-wrap">
+          <p><i class="icon ion-happy"></i> Ya podés acercarte a la caja número {{ cliente.getCaja() }}</p>
+        </div>
+      </div>
+    </div>
+    <a href="#" ng-click="irme()" class="zoomButton button button-assertive button-block icon-left ion-android-cancel"> Irme</a>
   </ion-content>
 </ion-view>

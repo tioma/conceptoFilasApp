@@ -1,28 +1,53 @@
 /**
  * Created by Artiom on 10/03/2016.
  */
-myApp.controller('filaCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFactory', '$ionicPlatform', '$sce', 'comerciosFactory', '$http', 'Cliente', '$cordovaVibration',
-  function($scope, localStorage, $ionicPopup, socketFactory, $ionicPlatform, $sce, comerciosFactory, $http, Cliente, $cordovaVibration) {
+myApp.controller('filaCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketConnection', '$sce', '$ionicPlatform', 'comerciosFactory', '$http', 'Cliente', '$cordovaVibration', 'comerceSystem', '$state',
+  function($scope, localStorage, $ionicPopup, socketConnection, $sce, $ionicPlatform, comerciosFactory, $http, Cliente, $cordovaVibration, comerceSystem, $state) {
 
-    $scope.sistema = {
-      initialRender: false,
-      colaGeneral: [],
-      cajas: [],
-      retrasoPromedio: []
-    };
+    $scope.sistema = comerceSystem.getSystem();
 
-    $scope.cliente = new Cliente(
-      localStorage.get('uuid'),
-      localStorage.get('enComercio') === 'true',
-      $scope.sistema
-    );
+    $scope.cliente = new Cliente($scope.sistema);
 
     $scope.online = localStorage.get('isOnline') === 'true';
     $scope.errorGPS = localStorage.get('errorGPS') === 'true';
 
-    var mySocket = null;
+    $scope.$on('socket:actualizarFila', function(ev, data){
+      console.log(JSON.stringify(data));
+      $scope.sistema.colaGeneral = data.colaGeneral;
+      $scope.sistema.cajas = data.cajas;
+      $scope.sistema.tiempoPromedioAtencion = data.tiempoPromedioAtencion;
 
-    function conectarSocket(){
+      var cajasAtendiendo = [];
+      $scope.sistema.cajas.forEach(function(caja){
+        if (caja.atendiendo) cajasAtendiendo.push(caja);
+      });
+
+      $scope.sistema.cajasAtendiendo = cajasAtendiendo;
+
+      if (cajasAtendiendo.length == 1) {
+        $scope.estadoCajas = $sce.trustAsHtml('<i class="icon ion-android-cart"></i> El sistema se encuentra habilitado. La caja numero ' + cajasAtendiendo[0].numero + ' se encuentra atendiendo');
+      } else {
+        $scope.estadoCajas = $sce.trustAsHtml('<i class="icon ion-android-cart"></i> El sistema se encuentra habilitado. Las cajas <span ng-repeat="caja in sistema.cajasAtendiendo track by $index"><span ng-show="$last">y </span><span>{{caja.numero}}</span><span ng-show="!$last">, </span></span> están atendiendo');
+      }
+
+      if ($scope.cliente.estaEnCaja()){
+        if ($scope.cliente.getNotifCaja){
+          $scope.cliente.setNotifCaja(false);
+          $cordovaVibration.vibrate(2000);
+        }
+      } else {
+        $scope.cliente.setNotifCaja(true);
+      }
+    });
+
+    $scope.$on('socket:clienteAtendido', function(ev, data){
+      console.log(JSON.stringify(data));
+      $state.go('tabs.gracias');
+    });
+
+    socketConnection.hacerFila();
+
+    /*function conectarSocket(){
 
       console.log('conectar socket loco');
 
@@ -66,37 +91,7 @@ myApp.controller('filaCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFa
 
         $scope.sistema.initialRender = true;
       });
-    }
-
-    if ($scope.online && $scope.cliente.estaEnComercio()){
-      conectarSocket();
-    } else {
-      $scope.initialRender = true;
-    }
-
-    function customBack(){
-      $ionicPopup.confirm({
-        title: 'Salir',
-        content: '¿Desea salir de la aplicación?',
-        cssClass: "question-popup",
-        cancelText: "Cancelar"
-      }).then(function(confirm){
-        if (confirm){
-          if ($scope.cliente.estaEnFilaGeneral()) mySocket.emit('salirFila');
-          ionic.Platform.exitApp();
-        }
-      })
-    }
-
-    $ionicPlatform.registerBackButtonAction(customBack, 501);
-
-    $scope.hacerFila = function(){
-      mySocket.emit('hacerFila');
-    };
-
-    $scope.retrasarme = function(){
-
-    };
+    }*/
 
     $scope.irme = function(){
       $ionicPopup.confirm({
@@ -106,10 +101,13 @@ myApp.controller('filaCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFa
         cancelText: "Cancelar"
       }).then(function(confirm){
         if (confirm){
-          mySocket.emit('salirFila');
+          socketConnection.salirFila();
+          $state.go('tabs.hacerFila');
         }
       })
     };
+
+    $ionicPlatform.registerBackButtonAction($scope.irme, 501);
 
     $scope.$on('offline', function(){
       $scope.online = false;
@@ -117,10 +115,10 @@ myApp.controller('filaCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFa
 
     $scope.$on('online', function(){
       $scope.online = true;
-      if ($scope.cliente.estaEnComercio()) mySocket.emit('pedirActualizacion');
+      socketConnection.pedirActualizacion();
     });
 
-    $scope.$on('nuevaPosicion', function(ev, miPosicion){
+    /*$scope.$on('nuevaPosicion', function(ev, miPosicion){
       $scope.errorGPS = false;
       if (!$scope.cliente.estaEnComercio()){
         //Determinar si se encuentra en un comercio y conectar
@@ -147,15 +145,15 @@ myApp.controller('filaCtrl', ['$scope', 'localStorage', '$ionicPopup', 'socketFa
           }
         });
       }
-    });
+    });*/
 
-    $scope.$on('errorGPS', function(){
+    /*$scope.$on('errorGPS', function(){
       localStorage.set('errorGPS', true);
       $scope.errorGPS = true;
-    });
+    });*/
 
     $scope.$on('$destroy', function(){
-      mySocket.emit('salirFila');
+      socketConnection.salirFila();
     });
 
   }]);

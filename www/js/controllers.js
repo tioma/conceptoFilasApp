@@ -1,3 +1,47 @@
+myApp.controller('navigationCtrl', ['$scope', '$ionicHistory', 'localStorage', '$ionicPopup', 'socketConnection', '$state',
+  function($scope, $ionicHistory, localStorage, $ionicPopup, socketConnection, $state){
+
+    if (localStorage.get('isLogged') === 'true'){
+      $scope.usuario = localStorage.getObject('usuario');
+      $scope.sideMenu = [
+        {nombre: 'Mi perfil', ref: 'perfil'},
+        {nombre: 'Mis compras', ref: 'compras'},
+        {nombre: 'Promociones', ref: 'promociones'}
+      ]
+    } else {
+      $scope.usuario = {
+        nombre: 'Anónimo',
+        avatar: 'img/avatar_guest.png'
+      };
+      $scope.sideMenu = [
+        {nombre: 'Iniciar sesión', ref: 'login'},
+        {nombre: 'Mis compras', ref: 'compras'}
+      ]
+    }
+
+    $scope.irAtras = function(){
+      switch ($ionicHistory.currentStateName()){
+        case 'tabs.tuFila':
+          $ionicPopup.confirm({
+            title: 'Abandonar fila',
+            content: 'Vas a perder tu posición en la fila, ¿estás seguro?',
+            cssClass: "question-popup",
+            cancelText: "Cancelar"
+          }).then(function(confirm){
+            if (confirm){
+              socketConnection.salirFila();
+              $state.go('tabs.hacerFila');
+            }
+          });
+          break;
+        case 'tabs.gracias':
+          $state.go('tabs.hacerFila');
+          break;
+      }
+    }
+
+  }]);
+
 myApp.controller('listaCtrl', ['$scope', 'localStorage', '$ionicPopup', function($scope, localStorage, $ionicPopup){
 
   $scope.listaCompras = localStorage.getObject('listaCompras');

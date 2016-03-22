@@ -24,6 +24,7 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
     })
 
     .state('tabs.hacerFila', {
+      cache: false,
       url:'/hacerFila',
       views: {
         'fila-tab': {
@@ -34,6 +35,7 @@ myApp.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
     })
 
     .state('tabs.tuFila', {
+      cache: false,
       url: '/tuFila',
       views: {
         'fila-tab':{
@@ -109,24 +111,6 @@ myApp.run(['$rootScope', '$ionicPlatform', 'ConnectivityMonitor', '$ionicPopup',
       }
 
       GeolocationMonitor.startWatching();
-
-      if (localStorage.get('isLogged') === 'true'){
-        $rootScope.usuario = localStorage.getObject('usuario');
-        $rootScope.sideMenu = [
-          {nombre: 'Mi perfil', ref: 'perfil'},
-          {nombre: 'Mis compras', ref: 'compras'},
-          {nombre: 'Promociones', ref: 'promociones'}
-        ]
-      } else {
-        $rootScope.usuario = {
-          nombre: 'Anónimo',
-          avatar: 'img/avatar_guest.png'
-        };
-        $rootScope.sideMenu = [
-          {nombre: 'Iniciar sesión', ref: 'login'},
-          {nombre: 'Mis compras', ref: 'compras'}
-        ]
-      }
 
     });
   }]);
